@@ -86,7 +86,7 @@ ModelData ModelLoader::load(const std::string &path, const ModelLoader::Format &
 
     // Instanciate the loader 
     switch (format) {
-        case OBJ: loader = new OBJLoader(path); break;
+        case OBJ: loader = static_cast<ModelLoader *>(new OBJLoader(path)); break;
         
         // Return empty model data if the format is unknown
         default:

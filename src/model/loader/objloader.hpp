@@ -20,17 +20,27 @@ class OBJLoader : public ModelLoader {
         /** Disable the assignation operator */
         OBJLoader &operator=(const OBJLoader &) = delete;
 
+
+        // Methods
+
+        /** Parse, store the vertex and returns its index */
+        GLsizei storeVertex(const std::string &vertex_str);
+
+        /** Calculate the tangent vector for each vertex of a triangle */
+        void calcTangent(const GLsizei &ind_0, const GLsizei &ind_1, const GLsizei &ind_2);
+
+        /** Read data from file */
+        bool read();
+
+        /** Read material data from file */
+        bool readMTL(const std::string &mtl);
+
+
     public:
         // Constructor
 
         /** OBJ loader constructor */
         OBJLoader(const std::string &path);
-
-
-        // Methods
-
-        /** Read data from file */
-        bool read();
 };
 
 #endif // __OBJ_LOADER_HPP_

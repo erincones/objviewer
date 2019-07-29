@@ -59,10 +59,10 @@ class ModelLoader {
 
 
         /** Parsed vertices */
-        std::map<std::string, GLuint> parsed_vertex;
+        std::map<std::string, GLsizei> parsed_vertex;
 
         /** Indices */
-        std::vector<GLuint> index_stock;
+        std::vector<GLsizei> index_stock;
 
         /** Vertices */
         std::vector<Vertex> vertex_stock;

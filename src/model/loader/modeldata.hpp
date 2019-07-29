@@ -36,7 +36,7 @@ class ModelData {
             // Constructor
 
             /** Object data constructor */
-            Object();
+            Object(const GLsizei &count = 0, const GLsizei &offset = 0, Material *const material = nullptr);
         };
 
         
@@ -84,16 +84,16 @@ class ModelData {
 
 
         /** Number of vertices */
-        unsigned int vertices;
+        std::size_t vertices;
 
         /** Number of elements */
-        unsigned int elements;
+        std::size_t elements;
 
         /** Number of triangles */
-        unsigned int triangles;
+        std::size_t triangles;
 
         /** Number of textures */
-        unsigned int textures;
+        std::size_t textures;
 
 
         // Constructors

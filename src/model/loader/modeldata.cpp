@@ -4,10 +4,10 @@
 // Structs
 
 // Object constructor
-ModelData::Object::Object() :
-    count(0),
-    offset(0),
-    material(nullptr) {}
+ModelData::Object::Object(const GLsizei &count, const GLsizei &offset, Material *const material) :
+    count(count),
+    offset(sizeof(GLsizei) * offset),
+    material(material) {}
 
 
 // Constructor
