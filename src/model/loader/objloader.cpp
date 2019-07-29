@@ -4,6 +4,8 @@
 
 #include "../../glad/glad.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
 #include <algorithm>
@@ -225,6 +227,11 @@ bool OBJLoader::read() {
     for (ModelLoader::Vertex &vertex : vertex_stock) {
         vertex.tangent = glm::normalize(vertex.tangent - vertex.normal * glm::dot(vertex.normal, vertex.tangent));
     }
+
+    // Setup origin matrix
+    glm::vec3 dim = model_data.max - model_data.min;
+    float min_dim = 1.0F / glm::max(glm::max(dim.x, dim.y), dim.z);
+    model_data.origin_mat = glm::translate(glm::scale(glm::mat4(1.0F), glm::vec3(min_dim)), (model_data.min + model_data.max) / -2.0F) ;
 
     // Save statistics
     model_data.vertices = position_stock.size();
