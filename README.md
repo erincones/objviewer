@@ -10,7 +10,7 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
 - [ ] OBJ/MTL 3D models loading
   - [ ] Intercative position, scale and rotation
   - [ ] Interactive material attributes
-- [ ] Shaders loading in runtime
+- [x] Shaders loading in runtime
 - [ ] 2D and cube maps textures loading in runtime
 - [ ] Interactive camera
   - [ ] Mouse and keyboard control
