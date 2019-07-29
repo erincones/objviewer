@@ -31,7 +31,7 @@ TARGET := $(BIN)/$(PROJECT)
 
 release: $(TARGET)
 
-debug: FLAGS += -g3
+debug: FLAGS += -ggdb3
 debug: $(TARGET)
 
 clean:
