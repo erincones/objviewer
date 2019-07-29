@@ -92,6 +92,9 @@ class ModelData {
         /** Number of triangles */
         unsigned int triangles;
 
+        /** Number of textures */
+        unsigned int textures;
+
 
         // Constructors
 

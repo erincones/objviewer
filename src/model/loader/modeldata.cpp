@@ -34,4 +34,5 @@ ModelData::ModelData(const std::string &path) :
     // Statistics
     vertices(0U),
     elements(0U),
-    triangles(0U) {}
+    triangles(0U),
+    textures(0U) {}
