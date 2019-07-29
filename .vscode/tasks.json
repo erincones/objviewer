@@ -1,0 +1,51 @@
+{
+    "version": "2.0.0",
+    "type": "shell",
+    "command": "make",
+    "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+    },
+    "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": [
+            "relative",
+            "${workspaceFolder}"
+        ],
+        "pattern": {
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+        }
+    },
+    "tasks": [
+        {
+            "label": "release",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "debug",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "args": [
+                "debug"
+            ]
+        },
+        {
+            "label": "clean",
+            "group": "none",
+            "problemMatcher": [],
+            "args": [
+                "clean"
+            ]
+        }
+    ]
+}
