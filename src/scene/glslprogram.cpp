@@ -127,8 +127,7 @@ GLSLProgram::GLSLProgram(const std::string &vert, const std::string &frag) :
     frag_path(frag),
 
     // Number of shaders
-    shaders(0U)
-{
+    shaders(0U) {
     // Link the program
     link();
 }
@@ -144,8 +143,7 @@ GLSLProgram::GLSLProgram(const std::string &vert, const std::string &geom, const
     frag_path(frag),
 
     // Number of shaders
-    shaders(0U)
-{
+    shaders(0U) {
     // Link the program
     link();
 }
