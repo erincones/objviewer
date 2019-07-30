@@ -13,6 +13,8 @@
 #include <map>
 #include <vector>
 
+#include <memory>
+
 
 /** Model data abstract class */
 class ModelData {
@@ -30,13 +32,13 @@ class ModelData {
             GLsizei offset;
 
             /** Material */
-            Material *material;
+            std::shared_ptr<Material> material;
 
 
             // Constructor
 
             /** Object data constructor */
-            Object(const GLsizei &count = 0, const GLsizei &offset = 0, Material *const material = nullptr);
+            Object(const GLsizei &count = 0, const GLsizei &offset = 0, const std::shared_ptr<Material> material = nullptr);
         };
 
         
@@ -77,10 +79,10 @@ class ModelData {
 
 
         /** Object stock */
-        std::vector<ModelData::Object> object_stock;
+        std::vector<std::shared_ptr<ModelData::Object> > object_stock;
 
         /** Material stock */
-        std::vector<Material *> material_stock;
+        std::vector<std::shared_ptr<Material> > material_stock;
 
 
         /** Number of vertices */

@@ -80,18 +80,18 @@ ModelLoader::~ModelLoader() {}
 // Public static methods
 
 // Read and load data
-ModelData ModelLoader::load(const std::string &path, const ModelLoader::Format &format) {
-    // Create a null model loader
-    ModelLoader *loader = nullptr;
+std::unique_ptr<ModelData> ModelLoader::load(const std::string &path, const ModelLoader::Format &format) {
+    // Create a null model loader and model data
+    std::unique_ptr<ModelLoader> loader = nullptr;
 
     // Instanciate the loader 
     switch (format) {
-        case OBJ: loader = static_cast<ModelLoader *>(new OBJLoader(path)); break;
+        case OBJ: loader = std::unique_ptr<ModelLoader>(static_cast<ModelLoader *>(new OBJLoader(path))); break;
         
         // Return empty model data if the format is unknown
         default:
             std::cerr << "error: unknown model loader format `" << format << "'" << std::endl;
-            return ModelData(path);
+            return std::unique_ptr<ModelData>(new ModelData(path));
     }
 
     // Read and load data
@@ -99,12 +99,8 @@ ModelData ModelLoader::load(const std::string &path, const ModelLoader::Format &
         loader->load();
     }
 
-    // Get the model data and delete the loader
-    ModelData model_data(loader->model_data);
-    delete loader;
-
     // Return the model data
-    return model_data;
+    return std::unique_ptr<ModelData>(new ModelData(loader->model_data));
 }
 
 // Right std::string trim

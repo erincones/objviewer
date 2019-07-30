@@ -4,7 +4,7 @@
 // Structs
 
 // Object constructor
-ModelData::Object::Object(const GLsizei &count, const GLsizei &offset, Material *const material) :
+ModelData::Object::Object(const GLsizei &count, const GLsizei &offset, const std::shared_ptr<Material> material) :
     count(count),
     offset(sizeof(GLsizei) * offset),
     material(material) {}

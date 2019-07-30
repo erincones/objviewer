@@ -16,6 +16,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <memory>
+
 
 // Private methods
 
@@ -133,7 +135,7 @@ bool OBJLoader::read() {
         else if ((token == "usemtl") && model_data.material_open) {
             // Set count to the previous object
             if (!model_data.object_stock.empty()) {
-                model_data.object_stock.back().count = static_cast<GLsizei>(index_stock.size()) - count;
+                model_data.object_stock.back()->count = static_cast<GLsizei>(index_stock.size()) - count;
                 count = static_cast<GLsizei>(index_stock.size());
             }
 
@@ -142,8 +144,8 @@ bool OBJLoader::read() {
 			std::getline(stream, token);
 
             // Search in the stock
-			Material *material = nullptr;
-            for (Material *const &material_it : model_data.material_stock) {
+			std::shared_ptr<Material> material = nullptr;
+            for (const std::shared_ptr<Material> &material_it : model_data.material_stock) {
                 if (material_it->getName() == token) {
                     material = material_it;
                     break;
@@ -151,7 +153,7 @@ bool OBJLoader::read() {
             }
 
             // Create object and bind the material
-            model_data.object_stock.push_back(ModelData::Object(0, count, material));
+            model_data.object_stock.emplace_back(std::make_shared<ModelData::Object>(0, count, material));
         }
 
         // Store vertex position
@@ -213,14 +215,14 @@ bool OBJLoader::read() {
 
     // Set count to the last object
     if (model_data.material_open) {
-        model_data.object_stock.back().count = static_cast<GLsizei>(index_stock.size()) - count;
+        model_data.object_stock.back()->count = static_cast<GLsizei>(index_stock.size()) - count;
     }
 
     // Create a default material and associate all vertices to it if the material file could not be open
 	else {
-        Material *material = new Material("default");
-        model_data.material_stock.push_back(material);
-        model_data.object_stock.push_back(ModelData::Object(static_cast<GLsizei>(index_stock.size()), 0, material));
+        std::shared_ptr<Material> material = std::make_shared<Material>("default");
+        model_data.material_stock.emplace_back(material);
+        model_data.object_stock.emplace_back(std::make_shared<ModelData::Object>(static_cast<GLsizei>(index_stock.size()), 0, material));
     }
 
     // Orthogonalize tangents
@@ -263,7 +265,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
     }
 
     // Material description read variables
-    Material *material = nullptr;
+    std::shared_ptr<Material> material = nullptr;
     bool load_cube_map = false;
     std::string cube_map_path[6];
 	std::string token;
@@ -312,8 +314,8 @@ bool OBJLoader::readMTL(const std::string &mtl) {
 			std::getline(stream, token);
 
             // Create the new material
-            material = new Material(token);
-			model_data.material_stock.push_back(material);
+            material = std::make_shared<Material>(token);
+			model_data.material_stock.emplace_back(material);
         }
 
 
