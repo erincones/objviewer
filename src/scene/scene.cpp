@@ -58,9 +58,6 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         }
     }
 
-    // Count instance
-    Scene::instances++;
-
     // Create window
     if (create_window) {
         // Set the window hints
@@ -112,6 +109,47 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
             glEnable(GL_DEPTH_TEST);
         }
     }
+
+    // Load default textures if there are no instances
+    if (Scene::instances == 0U) {
+        Material::createDefaultTextures();
+    }
+
+    // Count instance
+    Scene::instances++;
+}
+
+
+// Getters
+
+// Get the valid status
+bool Scene::isValid() {
+    return window != nullptr;
+}
+
+
+// Setters
+
+// Add model
+std::size_t Scene::addModel(const std::string &path, const std::size_t &program_id) {
+    std::size_t index = model_stock.size();
+    model_stock.emplace_back(std::make_shared<Model>(path));
+    model_stock[index]->setProgram(program_stock[program_id]);
+    return index;
+}
+
+// Add GLSL program without geometry shader
+std::size_t Scene::addProgram(const std::string &vert, const std::string &frag) {
+    std::size_t index = program_stock.size();
+    program_stock.emplace_back(std::make_shared<GLSLProgram>(vert, frag));
+    return index;
+}
+
+// Add GLSL program
+std::size_t Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
+    std::size_t index = program_stock.size();
+    program_stock.emplace_back(std::make_shared<GLSLProgram>(vert, geom, frag));
+    return index;
 }
 
 
@@ -129,6 +167,11 @@ void Scene::mainLoop() {
     while (glfwWindowShouldClose(window) == GLFW_FALSE) {
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Draw each model
+        for (const std::shared_ptr<Model> &model : model_stock) {
+            model->draw();
+        }
 
         // Poll events and swap buffers
         glfwPollEvents();
@@ -151,6 +194,7 @@ Scene::~Scene() {
 
     // Terminate GLFW if there are no instances
     if (Scene::instances == 0U) {
+        Material::deleteDefaultTextures();
         glfwTerminate();
     }
 }

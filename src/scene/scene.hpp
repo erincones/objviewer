@@ -1,12 +1,19 @@
 #ifndef __SCENE_HPP_
 #define __SCENE_HPP_
 
+#include "../model/model.hpp"
+#include "glslprogram.hpp"
+
 #include "../glad/glad.h"
 #include <GLFW/glfw3.h>
 
 #include <glm/vec3.hpp>
 
 #include <string>
+
+#include <vector>
+
+#include <memory>
 
 
 class Scene {
@@ -28,6 +35,13 @@ class Scene {
 
         /** Clear color */
         glm::vec3 clear_color;
+
+
+        /** Model stock */
+        std::vector<std::shared_ptr<Model> > model_stock;
+
+        /** Program stock */
+        std::vector<std::shared_ptr<GLSLProgram> > program_stock;
 
 
         // Constructors
@@ -65,6 +79,24 @@ class Scene {
 
         /** Scene constructor */
         Scene(const std::string &title, const int &width = 800, const int &height = 600, const int &context_ver_maj = 3, const int &context_ver_min = 3);
+
+        
+        // Getters
+
+        /** Get the valid status */
+        bool isValid();
+
+
+        // Setters
+
+        /** Add model */
+        std::size_t addModel(const std::string &path, const std::size_t &program_id);
+
+        /** Add GLSL program without geometry shader */
+        std::size_t addProgram(const std::string &vert, const std::string &frag);
+
+        /** Add GLSL program */
+        std::size_t addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
 
 
         // Methods

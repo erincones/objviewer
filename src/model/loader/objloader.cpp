@@ -254,8 +254,8 @@ bool OBJLoader::read() {
 // Read material data from file
 bool OBJLoader::readMTL(const std::string &mtl) {
     // Get the relative directory and set the material file path
-    std::string dir = model_data.model_path.substr(0, model_data.model_path.find_last_of(DIR_SEP) + 1);
-    model_data.material_path = dir + mtl;
+    std::string relative = model_data.model_path.substr(0U, model_data.model_path.find_last_of(DIR_SEP) + 1U);
+    model_data.material_path = relative + mtl;
 
     // Open the material file and check it
     std::ifstream file(model_data.material_path);
@@ -379,7 +379,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ka") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::AMBIENT);
+            material->setTexturePath(relative + token, Material::AMBIENT);
             model_data.textures++;
         }
 
@@ -387,7 +387,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_kd") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::DIFFUSE);
+            material->setTexturePath(relative + token, Material::DIFFUSE);
             model_data.textures++;
         }
 
@@ -395,7 +395,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ks") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::SPECULAR);
+            material->setTexturePath(relative + token, Material::SPECULAR);
             model_data.textures++;
         }
 
@@ -403,7 +403,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ns") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::SHININESS);
+            material->setTexturePath(relative + token, Material::SHININESS);
             model_data.textures++;
         }
 
@@ -411,7 +411,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
 		else if ((token == "map_bump") || (token == "bump") || (token == "kn")) {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::NORMAL);
+            material->setTexturePath(relative + token, Material::NORMAL);
             model_data.textures++;
         }
 
@@ -419,7 +419,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "disp") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::DISPLACEMENT);
+            material->setTexturePath(relative + token, Material::DISPLACEMENT);
             model_data.textures++;
         }
 
@@ -436,7 +436,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             if (token == "cube_right") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[0] = dir + token;
+                cube_map_path[0] = relative + token;
                 is_cube = true;
             }
 
@@ -444,7 +444,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_left") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[1] = dir + token;
+                cube_map_path[1] = relative + token;
                 is_cube = true;
             }
 
@@ -452,7 +452,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_top") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[2] = dir + token;
+                cube_map_path[2] = relative + token;
                 is_cube = true;
             }
 
@@ -460,7 +460,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_bottom") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[3] = dir + token;
+                cube_map_path[3] = relative + token;
                 is_cube = true;
             }
 
@@ -468,7 +468,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_front") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[4] = dir + token;
+                cube_map_path[4] = relative + token;
                 is_cube = true;
             }
 
@@ -476,7 +476,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_back") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[5] = dir + token;
+                cube_map_path[5] = relative + token;
                 is_cube = true;
             }
 

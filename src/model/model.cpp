@@ -28,6 +28,10 @@ void Model::load() {
     vao = model_data->vao;
     vbo = model_data->vbo;
     ebo = model_data->ebo;
+
+    // Set the stocks
+    material_stock = model_data->material_stock;
+    object_stock = model_data->object_stock;
     
     // Statistics
     vertices  = model_data->vertices;
