@@ -22,7 +22,7 @@ GLuint Material::blue_tex = GL_FALSE;
 // Private static methods
 
 // Create a default texture
-GLuint Material::createDefault(const glm::vec3 &color) {
+GLuint Material::createDefaultTexture(const glm::vec3 &color) {
     // Border color
     float border[4] = {color[0], color[1], color[2], 1.0F};
 
@@ -44,6 +44,13 @@ GLuint Material::createDefault(const glm::vec3 &color) {
     // Return texture
     return texture;
 }
+
+// Bind texture
+void Material::bindTexture(const GLenum &index, const GLuint &texture, const GLuint &default_texture) {
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_2D, texture != GL_FALSE ? texture : default_texture);
+}
+
 
 // Load a 2D texture
 GLuint Material::load2DTexture(const std::string &path) {
@@ -391,6 +398,49 @@ void Material::reloadTexture(const Material::Attribute &attrib) {
     }
 }
 
+// Bind material
+void Material::bind(const std::shared_ptr<GLSLProgram> &program) const {
+    // Check the program
+    if ((program == nullptr) || (!program->isValid())) {
+        return;
+    }
+
+    // Use the program
+    program->use();
+
+    // Set color uniforms
+    program->setUniform("ambient_color",      ambient_color);
+    program->setUniform("diffuse_color",      diffuse_color);
+    program->setUniform("specular_color",     specular_color);
+    program->setUniform("transparency_color", transparency_color);
+
+    // Set value uniforms
+    program->setUniform("shininess",        shininess);
+    program->setUniform("roughness",        roughness);
+    program->setUniform("metalness",        metalness);
+    program->setUniform("transparency",     transparency);
+    program->setUniform("displacement",     displacement);
+    program->setUniform("refractive_index", refractive_index);
+
+    // Set texture uniforms
+    program->setUniform("ambient_tex",      ambient_tex);
+    program->setUniform("diffuse_tex",      diffuse_tex);
+    program->setUniform("specular_tex",     specular_tex);
+    program->setUniform("shininess_tex",    shininess_tex);
+    program->setUniform("normal_tex",       normal_tex);
+    program->setUniform("displacement_tex", displacement_tex);
+    program->setUniform("cube_map_tex",     cube_map_tex);
+
+    // Bind textures
+    Material::bindTexture(0U, ambient_tex,      Material::white_tex);
+    Material::bindTexture(1U, diffuse_tex,      Material::white_tex);
+    Material::bindTexture(2U, specular_tex,     Material::white_tex);
+    Material::bindTexture(3U, shininess_tex,    Material::white_tex);
+    Material::bindTexture(4U, normal_tex,       Material::blue_tex);
+    Material::bindTexture(5U, displacement_tex, Material::black_tex);
+    Material::bindTexture(6U, cube_map_tex,     GL_FALSE);
+}
+
 
 // Destructor
 
@@ -413,17 +463,17 @@ Material::~Material() {
 void Material::createDefaultTextures() {
     // Create the white texture
     if (Material::white_tex != GL_FALSE) {
-        Material::white_tex = Material::createDefault(glm::vec3(1.0F));
+        Material::white_tex = Material::createDefaultTexture(glm::vec3(1.0F));
     }
 
     // Create the black texture
     if (Material::black_tex != GL_FALSE) {
-        Material::black_tex = Material::createDefault(glm::vec3(0.0F));
+        Material::black_tex = Material::createDefaultTexture(glm::vec3(0.0F));
     }
 
     // Create the blue texture
     if (Material::blue_tex != GL_FALSE) {
-        Material::blue_tex = Material::createDefault(glm::vec3(0.0F, 1.0F, 0.0F));
+        Material::blue_tex = Material::createDefaultTexture(glm::vec3(0.0F, 1.0F, 0.0F));
     }
 }
 
