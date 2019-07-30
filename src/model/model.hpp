@@ -11,6 +11,7 @@
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/mat3x3.hpp>
 #include <glm/vec3.hpp>
 
 #include <string>
@@ -36,7 +37,14 @@ class Model : private ModelData {
         glm::quat rotation;
 
         /** Dimension */
-        glm::quat dimension;
+        glm::vec3 dimension;
+
+
+        /** Model matrix */
+        glm::mat4 model_mat;
+
+        /** Normal matrix */
+        glm::mat3 normal_mat;
 
 
         // Constructors
@@ -46,6 +54,18 @@ class Model : private ModelData {
 
         /** Disable the assignation operator */
         Model &operator=(const Model &) = delete;
+
+
+        // Methods
+
+        /** Load the model from the model path */
+        void load();
+
+        /** Makes the model empty */
+        void clear();
+
+        /** Update model and normal matrices */
+        void updateMatrices();
 
 
     public:
@@ -91,6 +111,9 @@ class Model : private ModelData {
         /** Get the model matrix */
         glm::mat4 getModelMatrix() const;
 
+        /** Get the normal matrix */
+        glm::mat4 getNormalMatrix() const;
+
 
         /** Get the position */
         glm::vec3 getPosition() const;
@@ -109,6 +132,22 @@ class Model : private ModelData {
 
         /** Get the minimum position values */
         glm::vec3 getMin() const;
+
+
+        /** Get the number of vertices */
+        std::size_t getNumberOfVertices() const;
+
+        /** Get the number of elemtns */
+        std::size_t getNumberOfElements() const;
+
+        /** Get the number of triangles */
+        std::size_t getNumberOfTriangles() const;
+
+        /** Get the number of materials */
+        std::size_t getNumberOfMaterials() const;
+
+        /** Get the number of textures */
+        std::size_t getNumberOfTextures() const;
 
 
         // Setters
