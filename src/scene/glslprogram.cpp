@@ -4,12 +4,18 @@
 #include <fstream>
 
 
+// Static attributes
+
+/** Current program */
+GLuint GLSLProgram::current_program = GL_FALSE;
+
+
 // Private getters
 
 // Get the location of the given uniform within the program
 GLint GLSLProgram::getUniformLocation(const GLchar *&name) {
     // Return invalid location for invalid program
-    if (program == GL_FALSE) {
+    if ((program == GL_FALSE) || (program != GLSLProgram::current_program)) {
         return -1;
     }
 
@@ -190,42 +196,42 @@ std::string GLSLProgram::getShaderPath(const GLenum &type) const {
 // Setters
 
 // Set the value for an integer uniform
-void GLSLProgram::setUniform(const GLchar *&name, const GLint &value) {
+void GLSLProgram::setUniform(const GLchar *name, const GLint &value) {
     glUniform1i(getUniformLocation(name), value);
 }
 
 // Set the value for an unsigned integer uniform
-void GLSLProgram::setUniform(const GLchar *&name, const GLuint &value) {
+void GLSLProgram::setUniform(const GLchar *name, const GLuint &value) {
     glUniform1ui(getUniformLocation(name), value);
 }
 
 // Set the value for a float uniform
-void GLSLProgram::setUniform(const GLchar *&name, const GLfloat &value) {
+void GLSLProgram::setUniform(const GLchar *name, const GLfloat &value) {
     glUniform1f(getUniformLocation(name), value);
 }
 
 // Set the value for a 2D vector uniform
-void GLSLProgram::setUniform(const GLchar *&name, const glm::vec2 &vector) {
+void GLSLProgram::setUniform(const GLchar *name, const glm::vec2 &vector) {
     glUniform2fv(getUniformLocation(name), 1, &vector[0]);
 }
 
 // Set the value for a 3D vector uniform
-void GLSLProgram::setUniform(const GLchar *&name, const glm::vec3 &vector) {
+void GLSLProgram::setUniform(const GLchar *name, const glm::vec3 &vector) {
     glUniform3fv(getUniformLocation(name), 1, &vector[0]);
 }
 
 // Set the value for a 4D vector uniform
-void GLSLProgram::setUniform(const GLchar *&name, const glm::vec4 &vector) {
+void GLSLProgram::setUniform(const GLchar *name, const glm::vec4 &vector) {
     glUniform4fv(getUniformLocation(name), 1, &vector[0]);
 }
 
 // Set the value for a 3x3 matrix uniform
-void GLSLProgram::setUniform(const GLchar *&name, const glm::mat3 &matrix) {
+void GLSLProgram::setUniform(const GLchar *name, const glm::mat3 &matrix) {
     glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
 }
 
 // Set the value for a 4x4 matrix uniform
-void GLSLProgram::setUniform(const GLchar *&name, const glm::mat4 &matrix) {
+void GLSLProgram::setUniform(const GLchar *name, const glm::mat4 &matrix) {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
 }
 
@@ -377,7 +383,11 @@ void GLSLProgram::link(const std::string &vert, const std::string &geom, const s
 
 // Use the program
 void GLSLProgram::use() const {
-    glUseProgram(program);
+    // Update the current program if is not the current program
+    if (program != GLSLProgram::current_program) {
+        glUseProgram(program);
+        GLSLProgram::current_program = program;
+    }
 }
 
 
