@@ -5,6 +5,9 @@
 
 // Private static attributes
 
+// Instances counter
+unsigned int Scene::instances = 0U;
+
 // Glad loaded flag
 bool Scene::initialized_glad = false;
 
@@ -40,13 +43,34 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     
     // Clear color
     clear_color(0.45F, 0.55F, 0.60F) {
-    // Set window hints
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, context_ver_maj);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, context_ver_min);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Create window flag
+    bool create_window = true;
 
-    // Create the scene window
-    window = glfwCreateWindow(window_width, window_height, window_title.c_str(), nullptr, nullptr);
+    // Initialize GLFW if there are no instances
+    if (Scene::instances == 0U) {
+        // Setup error callback
+        glfwSetErrorCallback(Scene::error_callback);
+
+        // Initialize the library
+        if (glfwInit() != GLFW_TRUE) {
+            std::cerr << "error: cannot initialize GLFW" << std::endl;
+            create_window = false;
+        }
+    }
+
+    // Count instance
+    Scene::instances++;
+
+    // Create window
+    if (create_window) {
+        // Set the window hints
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, context_ver_maj);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, context_ver_min);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        // Create the scene window
+        window = glfwCreateWindow(window_width, window_height, window_title.c_str(), nullptr, nullptr);
+    }
 
     // Check the window creation
     if (window == nullptr) {
@@ -58,7 +82,6 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         // Set the user pointer to this scene and setup callbacks
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, Scene::framebuffer_size_callback);
-
 
         // Maximize window and setup as the current context
         glfwMaximizeWindow(window);
@@ -96,6 +119,13 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
 
 // Render main loop
 void Scene::mainLoop() {
+    // Check the window status
+    if (window == nullptr) {
+        std::cerr << "error: there is no window" << std::endl;
+        return;
+    }
+
+    // The rendering main loop
     while (glfwWindowShouldClose(window) == GLFW_FALSE) {
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -111,30 +141,16 @@ void Scene::mainLoop() {
 
 // Scene destructor
 Scene::~Scene() {
+    // Destroy window
     if (window != nullptr) {
         glfwDestroyWindow(window);
     }
-}
 
+    // Discount instance
+    Scene::instances--;
 
-// Static methods
-
-// Initialize GLFW
-bool Scene::initializeGLFW() {
-    // Setup error callback
-    glfwSetErrorCallback(Scene::error_callback);
-
-    // Initialize the library
-    if (glfwInit() != GLFW_TRUE) {
-        std::cerr << "error: cannot initialize GLFW" << std::endl;
-        return false;
+    // Terminate GLFW if there are no instances
+    if (Scene::instances == 0U) {
+        glfwTerminate();
     }
-
-    // Return true if all is well
-    return true;
-}
-
-// Terminate GLFW
-void Scene::terminateGLFW() {
-    glfwTerminate();
 }

@@ -44,6 +44,9 @@ class Scene {
 
         // Static attributes
 
+        /** Instances counter */
+        static unsigned int instances;
+
         /** Glad loaded flag */
         static bool initialized_glad;
 
@@ -74,15 +77,6 @@ class Scene {
 
         /** Scene destructor */
         ~Scene();
-
-
-        // Static methods
-        
-        /** Initialize GLFW */
-        static bool initializeGLFW();
-        
-        /** Terminate GLFW */
-        static void terminateGLFW();
 };
 
 #endif // __SCENE_HPP_
