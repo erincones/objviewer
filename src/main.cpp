@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-#include <memory>
-
 
 /** Main function */
 int main (int argc, char **argv) {
@@ -14,13 +12,16 @@ int main (int argc, char **argv) {
         std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
     }
 
+
     // Create the scene and check it
-    std::unique_ptr<Scene> scene = std::unique_ptr<Scene>(new Scene("OBJViewer"));
+    Scene *scene = new Scene("OBJViewer");
 
     // Exit with error if the scene is not valid
     if (!scene->isValid()) {
+        delete scene;
         return 1;
     }
+
 
     // Setup directories
     const std::string bin_path = argv[0];
@@ -29,14 +30,20 @@ int main (int argc, char **argv) {
     const std::string model_path  = relative + ".." + DIR_SEP + "model"  + DIR_SEP;
     const std::string shader_path = relative + ".." + DIR_SEP + "shader" + DIR_SEP;
 
-    // Add GLSL program and model
-    std::size_t normals_program = scene->addProgram(shader_path + "common.vert.glsl", shader_path + "normals.frag.glsl");
-    scene->addModel(model_path + "suzanne" + DIR_SEP + "suzanne.obj", normals_program);
-    
+
+    // Add the programs
+    const std::string common_vert_shader = shader_path + "common.vert.glsl";
+    Scene::setDefaultProgram(common_vert_shader, shader_path + "normals.frag.glsl");
+
+    // Add the models
+    scene->addModel(model_path + "suzanne" + DIR_SEP + "suzanne.obj");
+
 
     // Esecute the main loop
     scene->mainLoop();
 
-    // Normal exit
+
+    // Clean up and normal exit
+    delete scene;
     return 0;
 }

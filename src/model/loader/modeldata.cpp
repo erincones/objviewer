@@ -4,7 +4,7 @@
 // Structs
 
 // Object constructor
-ModelData::Object::Object(const GLsizei &count, const GLsizei &offset, const std::shared_ptr<Material> material) :
+ModelData::Object::Object(const GLsizei &count, const GLsizei &offset, Material *const material) :
     count(count),
     offset(sizeof(GLsizei) * offset),
     material(material) {}
@@ -36,3 +36,19 @@ ModelData::ModelData(const std::string &path) :
     elements(0U),
     triangles(0U),
     textures(0U) {}
+
+
+// Destructor
+
+// Model data destructor
+ModelData::~ModelData() {
+    // Delete all objects
+    for (const ModelData::Object *const object : object_stock) {
+        delete object;
+    }
+
+    // Delete all materials
+    for (const Material *const material : material_stock) {
+        delete material;
+    }
+}

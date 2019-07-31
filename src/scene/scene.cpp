@@ -8,8 +8,15 @@
 // Instances counter
 unsigned int Scene::instances = 0U;
 
+// Elements unique ID's
+unsigned int Scene::element_id = 0U;
+
 // Glad loaded flag
 bool Scene::initialized_glad = false;
+
+
+// Default program
+GLSLProgram *Scene::default_program = nullptr;
 
 
 // Static methods
@@ -21,13 +28,19 @@ void Scene::error_callback(int error, const char *description) {
 
 // GLFW framebuffer size callback
 void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // Get the scene and update the window resolution
-    Scene *scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
-    scene->window_width = width;
-    scene->window_height = height;
-
     // Resize viewport
     glViewport(0, 0, width, height);
+
+    // Get the scene and update the window resolution
+    Scene *scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
+    scene->width = width;
+    scene->height = height;
+
+    // Update all cameras resolution
+    const glm::vec2 resolution(width, height);
+    for (const std::pair<const unsigned int, Camera *const> &camera_data : scene->camera_stock) {
+        camera_data.second->setResolution(resolution);
+    }
 }
 
 
@@ -37,10 +50,10 @@ void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height)
 Scene::Scene(const std::string &title, const int &width, const int &height, const int &context_ver_maj, const int &context_ver_min) :
     // Defaults for window
     window(nullptr),
-    window_title(title),
-    window_width(width),
-    window_height(height),
-    
+    title(title),
+    width(width),
+    height(height),
+
     // Clear color
     clear_color(0.45F, 0.55F, 0.60F) {
     // Create window flag
@@ -66,7 +79,11 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         // Create the scene window
-        window = glfwCreateWindow(window_width, window_height, window_title.c_str(), nullptr, nullptr);
+        window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+        // Create the default camera
+        current_camera = new Camera(width, height);
+        camera_stock[Scene::element_id++] = current_camera;
     }
 
     // Check the window creation
@@ -98,8 +115,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
             // Set true the initialized Glad flag
             Scene::initialized_glad = true;
 
-            // Setup the viewport and swap interval
-            glViewport(0, 0, window_width, window_height);
+            // Setup the swap interval
             glfwSwapInterval(1);
 
             // Set the clear color
@@ -128,28 +144,77 @@ bool Scene::isValid() {
 }
 
 
+// Get resolution
+glm::vec2 Scene::getResolution() const {
+
+}
+
+
+// Get the current camera
+Camera *Scene::getCurrentCamera() const {
+
+}
+
+
+// Get camera by ID
+Camera *Scene::getCamera(const unsigned int &id) const {
+
+}
+
+// Get model by ID
+Model *Scene::getModel(const unsigned int &id) const {
+
+}
+
+// Get program by ID
+GLSLProgram *Scene::getProgram(const unsigned int &id) const {
+
+}
+
+
 // Setters
 
+// Set title
+void Scene::setTitle(const std::string &title) {
+
+}
+
+
+// Add camera
+unsigned int Scene::addCamera() {
+
+}
+
+// Select current camara
+bool Scene::selectCamera(const unsigned int &id) {
+
+}
+
+
+// Add empty model
+unsigned int Scene::addModel() {
+
+}
+
 // Add model
-std::size_t Scene::addModel(const std::string &path, const std::size_t &program_id) {
-    std::size_t index = model_stock.size();
-    model_stock.emplace_back(std::make_shared<Model>(path));
-    model_stock[index]->setProgram(program_stock[program_id]);
-    return index;
+unsigned int Scene::addModel(const std::string &path, const unsigned int &program_id) {
+
+}
+
+
+// Add empty GLSL program
+unsigned int Scene::addProgram() {
+
 }
 
 // Add GLSL program without geometry shader
-std::size_t Scene::addProgram(const std::string &vert, const std::string &frag) {
-    std::size_t index = program_stock.size();
-    program_stock.emplace_back(std::make_shared<GLSLProgram>(vert, frag));
-    return index;
+unsigned int Scene::addProgram(const std::string &vert, const std::string &frag) {
+
 }
 
 // Add GLSL program
-std::size_t Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
-    std::size_t index = program_stock.size();
-    program_stock.emplace_back(std::make_shared<GLSLProgram>(vert, geom, frag));
-    return index;
+unsigned int Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
+
 }
 
 
@@ -168,10 +233,7 @@ void Scene::mainLoop() {
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Draw each model
-        for (const std::shared_ptr<Model> &model : model_stock) {
-            model->draw();
-        }
+
 
         // Poll events and swap buffers
         glfwPollEvents();
@@ -180,14 +242,52 @@ void Scene::mainLoop() {
 }
 
 
+// Remove camera
+bool Scene::removeCamera(const unsigned int &id) {
+
+}
+
+// Remove camera
+bool Scene::removeModel(const unsigned int &id) {
+
+}
+
+// Remove program
+bool Scene::removeProgram(const unsigned int &id) {
+
+}
+
+
 // Destructor
 
 // Scene destructor
 Scene::~Scene() {
+    // Delete cameras
+    for (const std::pair<const unsigned int, const Camera *const> &camera_data : camera_stock) {
+        delete camera_data.second;
+    }
+
+    // Delete models
+    for (const std::pair<const unsigned int, const Model *const> &model_data : model_stock) {
+        delete model_data.second;
+    }
+
+    // Delete programs
+    for (const std::pair<const unsigned int, const GLSLProgram *const> &program_data : program_stock) {
+        delete program_data.second;
+    }
+
+    // Delete the default program
+    if (Scene::default_program != nullptr) {
+        delete Scene::default_program;
+    }
+
+
     // Destroy window
     if (window != nullptr) {
         glfwDestroyWindow(window);
     }
+
 
     // Discount instance
     Scene::instances--;
@@ -198,3 +298,37 @@ Scene::~Scene() {
         glfwTerminate();
     }
 }
+
+
+// Static getters
+
+// Get the default program
+GLSLProgram *Scene::getDefaultProgram() {
+    return Scene::default_program;
+}
+
+
+// Static setters
+
+// Set the default program without geometry shader
+GLSLProgram *Scene::setDefaultProgram(const std::string &vert, const std::string &frag) {
+    // Delete previous default program
+    if (Scene::default_program != nullptr) {
+        delete Scene::default_program;
+    }
+
+    // Create the new default program
+    Scene::default_program = new GLSLProgram(vert, frag);
+}
+
+// Set the default program
+GLSLProgram *Scene::setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
+    // Delete previous default program
+    if (Scene::default_program != nullptr) {
+        delete Scene::default_program;
+    }
+
+    // Create the new default program
+    Scene::default_program = new GLSLProgram(vert, geom, frag);
+}
+

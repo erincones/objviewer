@@ -1,6 +1,7 @@
 #ifndef __SCENE_HPP_
 #define __SCENE_HPP_
 
+#include "camera.hpp"
 #include "../model/model.hpp"
 #include "glslprogram.hpp"
 
@@ -11,9 +12,8 @@
 
 #include <string>
 
-#include <vector>
-
-#include <memory>
+#include <map>
+#include <forward_list>
 
 
 class Scene {
@@ -24,24 +24,31 @@ class Scene {
         GLFWwindow *window;
 
         /** Window title */
-        std::string window_title;
+        std::string title;
 
-        /** Window width */
-        int window_width;
+        /** Frame buffer width */
+        int width;
 
-        /** Window height */
-        int window_height;
+        /** Frame buffer height */
+        int height;
 
 
         /** Clear color */
         glm::vec3 clear_color;
 
 
+        /** Current camera */
+        Camera *current_camera;
+
+
+        /** Camera stock */
+        std::map<unsigned int, Camera *> camera_stock;
+
         /** Model stock */
-        std::vector<std::shared_ptr<Model> > model_stock;
+        std::map<unsigned int, Model *> model_stock;
 
         /** Program stock */
-        std::vector<std::shared_ptr<GLSLProgram> > program_stock;
+        std::map<unsigned int, GLSLProgram *> program_stock;
 
 
         // Constructors
@@ -61,8 +68,15 @@ class Scene {
         /** Instances counter */
         static unsigned int instances;
 
+        /** Elements unique ID's */
+        static unsigned int element_id;
+
         /** Glad loaded flag */
         static bool initialized_glad;
+
+
+        /** Default program */
+        static GLSLProgram *default_program;
 
 
         // Static methods
@@ -87,28 +101,89 @@ class Scene {
         bool isValid();
 
 
+        /** Get resolution */
+        glm::vec2 getResolution() const;
+
+
+        /** Get the current camera */
+        Camera *getCurrentCamera() const;
+
+
+        /** Get camera by ID */
+        Camera *getCamera(const unsigned int &id = 0U) const;
+
+        /** Get model by ID */
+        Model *getModel(const unsigned int &id) const;
+
+        /** Get program by ID */
+        GLSLProgram *getProgram(const unsigned int &id) const;
+
+
         // Setters
 
+        /** Set title */
+        void setTitle(const std::string &title);
+
+
+        /** Add camera */
+        unsigned int addCamera();
+
+        /** Select current camara */
+        bool selectCamera(const unsigned int &id);
+
+
+        /** Add empty model */
+        unsigned int addModel();
+
         /** Add model */
-        std::size_t addModel(const std::string &path, const std::size_t &program_id);
+        unsigned int addModel(const std::string &path, const unsigned int &program_id = 0U);
+
+
+        /** Add empty GLSL program */
+        unsigned int addProgram();
 
         /** Add GLSL program without geometry shader */
-        std::size_t addProgram(const std::string &vert, const std::string &frag);
+        unsigned int addProgram(const std::string &vert, const std::string &frag);
 
         /** Add GLSL program */
-        std::size_t addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        unsigned int addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
 
 
         // Methods
 
         /** Render main loop */
         void mainLoop();
-        
+
+
+        /** Remove camera */
+        bool removeCamera(const unsigned int &id);
+
+        /** Remove camera */
+        bool removeModel(const unsigned int &id);
+
+        /** Remove program */
+        bool removeProgram(const unsigned int &id);
+
 
         // Destructor
 
         /** Scene destructor */
         ~Scene();
+
+
+        // Static getters
+
+        /** Get the default program */
+        static GLSLProgram *getDefaultProgram();
+
+
+        // Static setters
+
+        /** Set the default program without geometry shader */
+        static GLSLProgram *setDefaultProgram(const std::string &vert, const std::string &frag);
+
+        /** Set the default program */
+        static GLSLProgram *setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag);
 };
 
 #endif // __SCENE_HPP_

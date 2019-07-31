@@ -399,7 +399,7 @@ void Material::reloadTexture(const Material::Attribute &attrib) {
 }
 
 // Bind material
-void Material::bind(const std::shared_ptr<GLSLProgram> &program) const {
+void Material::bind(GLSLProgram *const program) const {
     // Check the program
     if ((program == nullptr) || (!program->isValid())) {
         return;

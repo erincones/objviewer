@@ -9,8 +9,6 @@
 
 #include <string>
 
-#include <memory>
-
 
 /** Material with textures */
 class Material {
@@ -245,7 +243,7 @@ class Material {
         void reloadTexture(const Material::Attribute &attrib);
 
         /** Bind material */
-        void bind(const std::shared_ptr<GLSLProgram> &program) const;
+        void bind(GLSLProgram *const program) const;
 
 
         // Destructor

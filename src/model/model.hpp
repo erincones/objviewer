@@ -18,17 +18,11 @@
 
 #include <vector>
 
-#include <memory>
-
 
 /** 3D model */
 class Model : private ModelData {
     private:
         // Attributes
-
-        /** GLSL program */
-        std::shared_ptr<GLSLProgram> program;
-
 
         /** Position */
         glm::vec3 position;
@@ -94,15 +88,11 @@ class Model : private ModelData {
         std::string getMaterialPath() const;
 
 
-        /** Get the GLSL program */
-        std::shared_ptr<GLSLProgram> getProgram() const;
-
-
         /** Get the material stock */
-        std::vector<std::shared_ptr<Material> > getMaterialStock() const;
+        std::vector<Material *> getMaterialStock() const;
 
         /** Get a material by name */
-        std::shared_ptr<Material> getMaterial(const std::string &material_name) const;
+        Material *getMaterial(const std::string &material_name) const;
 
 
         /** Get the origin matrix */
@@ -155,9 +145,6 @@ class Model : private ModelData {
         /** Set the new path */
         void setPath(const std::string &new_path);
 
-        /** Set the GLSL program */
-        void setProgram(const std::shared_ptr<GLSLProgram> &new_program);
-
 
         /** Set the new position */
         void setPosition(const glm::vec3 &new_position);
@@ -185,7 +172,7 @@ class Model : private ModelData {
 
 
         /** Draw the model */
-        void draw();
+        void draw(GLSLProgram *const program) const;
 
 
         /** Translate the model */

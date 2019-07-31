@@ -4,13 +4,15 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <iostream>
+
 
 // Private methods
 
 // Load the model from the model path
 void Model::load() {
     // Load the model
-    std::unique_ptr<ModelData> model_data = ModelLoader::load(model_path, ModelLoader::OBJ);
+    ModelData *model_data = ModelLoader::load(model_path, ModelLoader::OBJ);
 
     // Seyt the open statuses
     model_open = model_data->model_open;
@@ -38,6 +40,12 @@ void Model::load() {
     elements  = model_data->elements;
     triangles = model_data->triangles;
     textures  = model_data->textures;
+
+
+    // Clea up the loader data
+    model_data->object_stock.clear();
+    model_data->material_stock.clear();
+    delete model_data;
 }
 
 // Makes the model empty
@@ -143,27 +151,22 @@ std::string Model::getMaterialPath() const {
 }
 
 
-// Get the GLSL program
-std::shared_ptr<GLSLProgram> Model::getProgram() const {
-    return program;
-}
-
-
 // Get the material stock
-std::vector<std::shared_ptr<Material> > Model::getMaterialStock() const {
+std::vector<Material *> Model::getMaterialStock() const {
     return material_stock;
 }
 
 // Get a material by name
-std::shared_ptr<Material> Model::getMaterial(const std::string &material_name) const {
+Material *Model::getMaterial(const std::string &material_name) const {
     // Find the material and return it
-    for (const std::shared_ptr<Material> &material : material_stock) {
+    for (Material *const material : material_stock) {
         if (material->getName() == material_name) {
             return material;
         }
     }
 
     // Return null if the material is not found
+    std::cerr << "error: material `" << material_name << "' not found" << std::endl;
     return nullptr;
 }
 
@@ -249,11 +252,6 @@ void Model::setPath(const std::string &new_path) {
     reload();
 }
 
-// Set the GLSL program
-void Model::setProgram(const std::shared_ptr<GLSLProgram> &new_program) {
-    program = new_program;
-}
-
 
 // Set the new position
 void Model::setPosition(const glm::vec3 &new_position) {
@@ -311,7 +309,7 @@ void Model::resetGeometry() {
 
 
 // Draw the model
-void Model::draw() {
+void Model::draw(GLSLProgram *const program) const {
     // Check model and program status
     if (!model_open || (program == nullptr) || (!program->isValid())) {
         return;
@@ -328,7 +326,7 @@ void Model::draw() {
     glBindVertexArray(vao);
 
     // Draw the objects
-    for (const std::shared_ptr<ModelData::Object> &object : object_stock) {
+    for (const ModelData::Object *const object : object_stock) {
         // Bind material
         object->material->bind(program);
 
