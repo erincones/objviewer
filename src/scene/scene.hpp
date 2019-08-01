@@ -102,6 +102,9 @@ class Scene {
 
 
         /** Get resolution */
+        std::string getTitle() const;
+
+        /** Get resolution */
         glm::vec2 getResolution() const;
 
 
@@ -122,11 +125,11 @@ class Scene {
         // Setters
 
         /** Set title */
-        void setTitle(const std::string &title);
+        void setTitle(const std::string &new_title);
 
 
         /** Add camera */
-        unsigned int addCamera();
+        unsigned int addCamera(const bool &orthogonal = false);
 
         /** Select current camara */
         bool selectCamera(const unsigned int &id);

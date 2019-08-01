@@ -144,77 +144,102 @@ bool Scene::isValid() {
 }
 
 
+// Get title
+std::string Scene::getTitle() const {
+    return title;
+}
+
 // Get resolution
 glm::vec2 Scene::getResolution() const {
-
+    return glm::vec2(width, height);
 }
 
 
 // Get the current camera
 Camera *Scene::getCurrentCamera() const {
-
+    return current_camera;
 }
 
 
 // Get camera by ID
 Camera *Scene::getCamera(const unsigned int &id) const {
-
+    std::map<unsigned int, Camera *>::const_iterator result = camera_stock.find(id);
+    return result == camera_stock.end() ? nullptr : result->second;
 }
 
 // Get model by ID
 Model *Scene::getModel(const unsigned int &id) const {
-
+    std::map<unsigned int, Model *>::const_iterator result = model_stock.find(id);
+    return result == model_stock.end() ? nullptr : result->second;
 }
 
 // Get program by ID
 GLSLProgram *Scene::getProgram(const unsigned int &id) const {
-
+    std::map<unsigned int, GLSLProgram *>::const_iterator result = program_stock.find(id);
+    return result == program_stock.end() ? nullptr : result->second;
 }
 
 
 // Setters
 
 // Set title
-void Scene::setTitle(const std::string &title) {
-
+void Scene::setTitle(const std::string &new_title) {
+    title = new_title;
+    glfwSetWindowTitle(window, title.c_str());
 }
 
 
 // Add camera
-unsigned int Scene::addCamera() {
-
+unsigned int Scene::addCamera(const bool &orthogonal) {
+    camera_stock[Scene::element_id] = new Camera(width, height);
+    return Scene::element_id++;
 }
 
 // Select current camara
 bool Scene::selectCamera(const unsigned int &id) {
+    // Find camera
+    std::map<unsigned int, Camera *>::const_iterator result = camera_stock.find(id);
+    
+    // Return false if the camera does not exists
+    if (result == camera_stock.end()) {
+        return false;
+    }
 
+    // Select the new current camera
+    current_camera = result->second;
+    return true;
 }
 
 
 // Add empty model
 unsigned int Scene::addModel() {
-
+    model_stock[Scene::element_id] = new Model();
+    return Scene::element_id++;
 }
 
 // Add model
 unsigned int Scene::addModel(const std::string &path, const unsigned int &program_id) {
-
+    model_stock[Scene::element_id] = new Model(path);
+    return Scene::element_id++;
 }
 
 
 // Add empty GLSL program
 unsigned int Scene::addProgram() {
-
+    program_stock[Scene::element_id] = new GLSLProgram();
+    return Scene::element_id++;
 }
 
 // Add GLSL program without geometry shader
 unsigned int Scene::addProgram(const std::string &vert, const std::string &frag) {
-
+    program_stock[Scene::element_id] = new GLSLProgram(vert, frag);
+    return Scene::element_id++;
 }
 
 // Add GLSL program
 unsigned int Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
-
+    program_stock[Scene::element_id] = new GLSLProgram(vert, geom, frag);
+    return Scene::element_id++;
 }
 
 
@@ -244,7 +269,30 @@ void Scene::mainLoop() {
 
 // Remove camera
 bool Scene::removeCamera(const unsigned int &id) {
+    // Check the camera stock size
+    if (camera_stock.size()) {
+        std::cerr << "error: the camera stock could not be empty" << std::endl;
+        return false;
+    }
 
+    // Find the camera
+    std::map<unsigned int, Camera *>::const_iterator result = camera_stock.find(id);
+
+    // Return false if the camera does not exists
+    if (result == camera_stock.end()) {
+        return false;
+    }
+
+    // Update the current camera if is selected to delete
+    if (result->second == current_camera) {
+        current_camera = std::next(result, result->second == camera_stock.rbegin()->second ? -1 : 1)->second;
+    }
+
+    // Delete camera
+    delete result->second;
+    camera_stock.erase(result);
+
+    return true;
 }
 
 // Remove camera
@@ -254,7 +302,19 @@ bool Scene::removeModel(const unsigned int &id) {
 
 // Remove program
 bool Scene::removeProgram(const unsigned int &id) {
+    // Find the program
+    std::map<unsigned int, GLSLProgram *>::const_iterator result = program_stock.find(id);
 
+    // Return false if the program does not exists
+    if (result == program_stock.end()) {
+        return false;
+    }
+
+    // Delete the program
+    delete result->second;
+    program_stock.erase(result);
+
+    return true;
 }
 
 
