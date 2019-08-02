@@ -351,7 +351,7 @@ void Camera::setBoostedSpeed(const float &speed) {
 
 
 // Set the mouse sensibility
-void Camera::setSensibility(const float &sesibility) {
+void Camera::setSensibility(const float &sensibility) {
     Camera::sensibility = sensibility;
 }
 
