@@ -150,24 +150,16 @@ std::string Model::getMaterialPath() const {
     return material_path;
 }
 
-
-// Get the material stock
-std::vector<Material *> Model::getMaterialStock() const {
-    return material_stock;
-}
-
-// Get a material by name
-Material *Model::getMaterial(const std::string &material_name) const {
-    // Find the material and return it
-    for (Material *const material : material_stock) {
-        if (material->getName() == material_name) {
-            return material;
-        }
+// Get a material by index
+Material *Model::getMaterial(const std::size_t &index) const {
+    // Check the index
+    if (index >= material_stock.size()) {
+        std::cerr << "error: the index " << index << " is greater than the material stock (" << material_stock.size() << ")" << std::endl;
+        return nullptr;
     }
 
-    // Return null if the material is not found
-    std::cerr << "error: material `" << material_name << "' not found" << std::endl;
-    return nullptr;
+    // Return the material
+    return material_stock[index];
 }
 
 

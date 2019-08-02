@@ -88,11 +88,8 @@ class Model : private ModelData {
         std::string getMaterialPath() const;
 
 
-        /** Get the material stock */
-        std::vector<Material *> getMaterialStock() const;
-
-        /** Get a material by name */
-        Material *getMaterial(const std::string &material_name) const;
+        /** Get a material by index */
+        Material *getMaterial(const std::size_t &index) const;
 
 
         /** Get the origin matrix */
