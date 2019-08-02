@@ -1,11 +1,8 @@
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include "scene/scene.hpp"
+
+#include "dirsep.h"
 
 #include <iostream>
-
-
-/** GLFW error callback */
-void error_callback(int error, const char *description);
 
 
 /** Main function */
@@ -15,80 +12,51 @@ int main (int argc, char **argv) {
         std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
     }
 
-    // Setup error callback
-    glfwSetErrorCallback(error_callback);
 
-    // Initialize GLFW
-    if (glfwInit() != GLFW_TRUE) {
-        std::cerr << "error: cannot initialize GLFW" << std::endl;
+    // Create the scene and check it
+    Scene *scene = new Scene("OBJViewer");
+
+    // Exit with error if the scene is not valid
+    if (!scene->isValid()) {
+        delete scene;
         return 1;
     }
 
-    // Set window hints
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create the application window
-    GLFWwindow *window = glfwCreateWindow(800, 600, "OBJViewer", nullptr, nullptr);
-    if (window == nullptr) {
-        std::cerr << "error: cannot create the application window" << std::endl;
+    // Setup directories
+    const std::string bin_path = argv[0];
+    const std::string relative = bin_path.substr(0U, bin_path.find_last_of(DIR_SEP) + 1U);
 
-        // Terminate GLFW and exit
-        glfwTerminate();
-        return 1;
-    }
-
-    // Maximize window and set as the current context
-    glfwMaximizeWindow(window);
-    glfwMakeContextCurrent(window);
-
-    // Initialize Glad
-    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0) {
-        std::cerr << "error: cannot initialize glad" << std::endl;
-
-        // Clean up
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return 1;
-    }
-
-    // Setup the swap interval
-    glfwSwapInterval(1);
-
-    // Create viewport
-    int width;
-    int height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-
-    // Set the clear color
-    glClearColor(0.45F, 0.55F, 0.6F, 1.00F);
-
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
+    const std::string model_path  = relative + ".." + DIR_SEP + "model"  + DIR_SEP;
+    const std::string shader_path = relative + ".." + DIR_SEP + "shader" + DIR_SEP;
 
 
-    // Main loop
-    while (glfwWindowShouldClose(window) != GLFW_TRUE) {
-        // Clear color and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Add the programs
+    const std::string common_vert_shader = shader_path + "common.vert.glsl";
+    Scene::setDefaultProgram(common_vert_shader, shader_path + "normals.frag.glsl");
 
-        // Poll events and swap buffers
-        glfwPollEvents();
-        glfwSwapBuffers(window);
-    }
+    // Add the models
+    std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
+    std::size_t model_id_1 = scene->addModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj");
+    std::size_t model_id_2 = scene->addModel(model_path + "box"      + DIR_SEP + "box.obj");
+
+    // Setup models
+    Model *model = scene->getModel(model_id_0);
+
+    model = scene->getModel(model_id_1);
+    model->setScale(glm::vec3(0.45F));
+    model->setPosition(glm::vec3(0.6F, 0.225F, 0.0F));
+
+    model = scene->getModel(model_id_2);
+    model->setScale(glm::vec3(0.45F));
+    model->setPosition(glm::vec3(0.6F, -0.225F, 0.0F));
 
 
-    // Clean up
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    // Esecute the main loop
+    scene->mainLoop();
 
+
+    // Clean up and normal exit
+    delete scene;
     return 0;
-}
-
-
-// GLFW error callback
-void error_callback(int error, const char *description) {
-    std::cerr << "error " << error << ": " << description << std::endl;
 }

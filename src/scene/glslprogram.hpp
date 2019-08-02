@@ -55,6 +55,12 @@ class GLSLProgram {
         GLint getUniformLocation(const GLchar *&name);
 
 
+        // Static attributes
+
+        /** Current program */
+        static GLuint current_program;
+
+
         // Static methods
 
         /** Compile a shader from the given source path and type */
@@ -92,28 +98,28 @@ class GLSLProgram {
         // Setters
 
         /** Set the value for an integer uniform */
-        void setUniform(const GLchar *&name, const GLint &value);
+        void setUniform(const GLchar *name, const GLint &value);
 
         /** Set the value for an unsigned integer uniform */
-        void setUniform(const GLchar *&name, const GLuint &value);
+        void setUniform(const GLchar *name, const GLuint &value);
 
         /** Set the value for a float uniform */
-        void setUniform(const GLchar *&name, const GLfloat &value);
+        void setUniform(const GLchar *name, const GLfloat &value);
 
         /** Set the value for a 2D vector uniform */
-        void setUniform(const GLchar *&name, const glm::vec2 &vector);
+        void setUniform(const GLchar *name, const glm::vec2 &vector);
 
         /** Set the value for a 3D vector uniform */
-        void setUniform(const GLchar *&name, const glm::vec3 &vector);
+        void setUniform(const GLchar *name, const glm::vec3 &vector);
 
         /** Set the value for a 4D vector uniform */
-        void setUniform(const GLchar *&name, const glm::vec4 &vector);
+        void setUniform(const GLchar *name, const glm::vec4 &vector);
 
         /** Set the value for a 3x3 matrix uniform */
-        void setUniform(const GLchar *&name, const glm::mat3 &matrix);
+        void setUniform(const GLchar *name, const glm::mat3 &matrix);
 
         /** Set the value for a 4x4 matrix uniform */
-        void setUniform(const GLchar *&name, const glm::mat4 &matrix);
+        void setUniform(const GLchar *name, const glm::mat4 &matrix);
 
 
         // Methods

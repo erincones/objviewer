@@ -1,6 +1,8 @@
 #ifndef __MATERIAL_HPP_
 #define __MATERIAL_HPP_
 
+#include "../scene/glslprogram.hpp"
+
 #include "../glad/glad.h"
 
 #include <glm/vec3.hpp>
@@ -181,7 +183,10 @@ class Material {
         // Static methods
 
         /** Create a default texture */
-        static GLuint createDefault(const glm::vec3 &color);
+        static GLuint createDefaultTexture(const glm::vec3 &color);
+
+        /** Bind texture */
+        static void bindTexture(const GLenum &index, const GLuint &texture, const GLuint &default_texture);
 
         /** Load a 2D texture */
         static GLuint load2DTexture(const std::string &path);
@@ -236,6 +241,9 @@ class Material {
 
         /** Reload texture */
         void reloadTexture(const Material::Attribute &attrib);
+
+        /** Bind material */
+        void bind(GLSLProgram *const program) const;
 
 
         // Destructor

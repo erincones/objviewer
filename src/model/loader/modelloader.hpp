@@ -46,7 +46,7 @@ class ModelLoader {
         // Attributes
 
         /** Model data */
-        ModelData model_data;
+        ModelData *model_data;
 
         /** Position stock */
         std::vector<glm::vec3> position_stock;
@@ -115,7 +115,7 @@ class ModelLoader {
         // Static methods
 
         /** Read and load data */
-        static ModelData load(const std::string &path, const ModelLoader::Format &format);
+        static ModelData *load(const std::string &path, const ModelLoader::Format &format);
 
         /** Right std::string trim */
         static void rtrim(std::string &str);

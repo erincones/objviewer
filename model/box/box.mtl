@@ -1,0 +1,77 @@
+newmtl bricks
+Ns 10
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bricks.jpg
+map_Bump bricks_normal.jpg
+disp bricks_disp.jpg
+
+newmtl pebbles
+Ns 10
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd pebbles.jpg
+map_Bump pebbles_normal.jpg
+disp pebbles_disp.png
+
+newmtl toy_box
+Ns 10
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd wood.png
+map_Bump toy_box_normal.png
+disp toy_box_disp.png
+
+newmtl metal
+Ns 10
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd metal.jpg
+map_Bump metal_normal.jpg
+disp metal_disp.png
+
+newmtl lava
+Ns 10
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd lava.jpg
+map_Bump lava_normal.jpg
+disp lava_disp.png
+
+newmtl door
+Ns 10
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd door.png
+map_Bump door_normal.png
+disp door_disp.png

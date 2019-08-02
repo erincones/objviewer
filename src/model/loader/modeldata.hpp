@@ -77,7 +77,7 @@ class ModelData {
 
 
         /** Object stock */
-        std::vector<ModelData::Object> object_stock;
+        std::vector<ModelData::Object *> object_stock;
 
         /** Material stock */
         std::vector<Material *> material_stock;
@@ -98,11 +98,17 @@ class ModelData {
 
         // Constructors
 
+        /** Disable the default constructor */
+        ModelData() = delete;
+
         /** Model data constructor */
         ModelData(const std::string &path);
 
-        /** Disable the default constructor */
-        ModelData() = delete;
+
+        // Destructor
+
+        /** Model data destructor */
+        ~ModelData();
 };
 
 #endif // __MODEL_DATA_HPP_

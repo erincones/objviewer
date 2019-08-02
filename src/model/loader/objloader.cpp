@@ -26,7 +26,7 @@ GLsizei OBJLoader::storeVertex(const std::string &vertex_str) {
 
     // Return the index of already parsed vertex
     if (result != parsed_vertex.end()) {
-        index_stock.push_back(result->second);
+        index_stock.emplace_back(result->second);
         return result->second;
     }
     
@@ -52,8 +52,8 @@ GLsizei OBJLoader::storeVertex(const std::string &vertex_str) {
     // Add vertex
     GLsizei index = static_cast<GLsizei>(vertex_stock.size());
     parsed_vertex[vertex_str] = index;
-    index_stock.push_back(index);
-    vertex_stock.push_back(vertex);
+    index_stock.emplace_back(index);
+    vertex_stock.emplace_back(vertex);
 
     // Return the index
     return index;
@@ -86,9 +86,9 @@ void OBJLoader::calcTangent(const GLsizei &ind_0, const GLsizei &ind_1, const GL
 // Read data from file
 bool OBJLoader::read() {
     // Open the model file and check it
-    std::ifstream file(model_data.model_path);
+    std::ifstream file(model_data->model_path);
     if (!file.is_open()) {
-        std::cerr << "error: could not open the model `" << model_data.model_path << "'" << std::endl;
+        std::cerr << "error: could not open the model `" << model_data->model_path << "'" << std::endl;
         return false;
     }
 
@@ -130,10 +130,10 @@ bool OBJLoader::read() {
         }
 
         // Use material for the next vertices
-        else if ((token == "usemtl") && model_data.material_open) {
+        else if ((token == "usemtl") && model_data->material_open) {
             // Set count to the previous object
-            if (!model_data.object_stock.empty()) {
-                model_data.object_stock.back().count = static_cast<GLsizei>(index_stock.size()) - count;
+            if (!model_data->object_stock.empty()) {
+                model_data->object_stock.back()->count = static_cast<GLsizei>(index_stock.size()) - count;
                 count = static_cast<GLsizei>(index_stock.size());
             }
 
@@ -142,49 +142,45 @@ bool OBJLoader::read() {
 			std::getline(stream, token);
 
             // Search in the stock
-			Material *material = nullptr;
-            for (Material *const &material_it : model_data.material_stock) {
-                if (material_it->getName() == token) {
-                    material = material_it;
+            for (Material *const material : model_data->material_stock) {
+                if (material->getName() == token) {
+                    model_data->object_stock.emplace_back(new ModelData::Object(0, count, material));
                     break;
                 }
             }
-
-            // Create object and bind the material
-            model_data.object_stock.push_back(ModelData::Object(0, count, material));
         }
 
         // Store vertex position
         else if (token == "v") {
             stream >> data.x >> data.y >> data.z;
-            position_stock.push_back(data);
+            position_stock.emplace_back(data);
 
             // Update the position limits
-            if (data.x < model_data.min.x) model_data.min.x = data.x;
-            if (data.y < model_data.min.y) model_data.min.y = data.y;
-            if (data.z < model_data.min.z) model_data.min.z = data.z;
-            if (data.x > model_data.max.x) model_data.max.x = data.x;
-            if (data.y > model_data.max.y) model_data.max.y = data.y;
-            if (data.z > model_data.max.z) model_data.max.z = data.z;
+            if (data.x < model_data->min.x) model_data->min.x = data.x;
+            if (data.y < model_data->min.y) model_data->min.y = data.y;
+            if (data.z < model_data->min.z) model_data->min.z = data.z;
+            if (data.x > model_data->max.x) model_data->max.x = data.x;
+            if (data.y > model_data->max.y) model_data->max.y = data.y;
+            if (data.z > model_data->max.z) model_data->max.z = data.z;
         }
 
         // Store normal
         else if (token == "vn") {
             stream >> data.x >> data.y >> data.z;
-            normal_stock.push_back(data);
+            normal_stock.emplace_back(data);
         }
 
         // Store texture coordinate
         else if (token == "vt") {
             stream >> data.x >> data.y;
-            uv_coord_stock.push_back(glm::vec2(data));
+            uv_coord_stock.emplace_back(glm::vec2(data));
         }
 
         // Store face
         else if (token == "f") {
             // Read the face vertex data
             while (stream >> token) {
-                face.push_back(token);
+                face.emplace_back(token);
             }
 
             // First vertex
@@ -212,15 +208,15 @@ bool OBJLoader::read() {
     file.close();
 
     // Set count to the last object
-    if (model_data.material_open) {
-        model_data.object_stock.back().count = static_cast<GLsizei>(index_stock.size()) - count;
+    if (model_data->material_open) {
+        model_data->object_stock.back()->count = static_cast<GLsizei>(index_stock.size()) - count;
     }
 
     // Create a default material and associate all vertices to it if the material file could not be open
 	else {
         Material *material = new Material("default");
-        model_data.material_stock.push_back(material);
-        model_data.object_stock.push_back(ModelData::Object(static_cast<GLsizei>(index_stock.size()), 0, material));
+        model_data->material_stock.emplace_back(material);
+        model_data->object_stock.emplace_back(new ModelData::Object(static_cast<GLsizei>(index_stock.size()), 0, material));
     }
 
     // Orthogonalize tangents
@@ -229,14 +225,14 @@ bool OBJLoader::read() {
     }
 
     // Setup origin matrix
-    glm::vec3 dim = model_data.max - model_data.min;
+    glm::vec3 dim = model_data->max - model_data->min;
     float min_dim = 1.0F / glm::max(glm::max(dim.x, dim.y), dim.z);
-    model_data.origin_mat = glm::translate(glm::scale(glm::mat4(1.0F), glm::vec3(min_dim)), (model_data.min + model_data.max) / -2.0F) ;
+    model_data->origin_mat = glm::translate(glm::scale(glm::mat4(1.0F), glm::vec3(min_dim)), (model_data->min + model_data->max) / -2.0F) ;
 
     // Save statistics
-    model_data.vertices = position_stock.size();
-    model_data.elements = vertex_stock.size();
-    model_data.triangles = index_stock.size() / 3U;
+    model_data->vertices = position_stock.size();
+    model_data->elements = vertex_stock.size();
+    model_data->triangles = index_stock.size() / 3U;
 
     // Free memory
     parsed_vertex.clear();
@@ -245,20 +241,20 @@ bool OBJLoader::read() {
     normal_stock.clear();
 
     // Return true if not error has been found
-    model_data.model_open = true;
+    model_data->model_open = true;
     return true;
 }
 
 // Read material data from file
 bool OBJLoader::readMTL(const std::string &mtl) {
     // Get the relative directory and set the material file path
-    std::string dir = model_data.model_path.substr(0, model_data.model_path.find_last_of(DIR_SEP) + 1);
-    model_data.material_path = dir + mtl;
+    std::string relative = model_data->model_path.substr(0U, model_data->model_path.find_last_of(DIR_SEP) + 1U);
+    model_data->material_path = relative + mtl;
 
     // Open the material file and check it
-    std::ifstream file(model_data.material_path);
+    std::ifstream file(model_data->material_path);
     if (!file.is_open()) {
-        std::cerr << "error: could not open the material file `" << model_data.material_path << "'" << std::endl;
+        std::cerr << "error: could not open the material file `" << model_data->material_path << "'" << std::endl;
         return false;
     }
 
@@ -311,9 +307,9 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             stream >> std::ws;
 			std::getline(stream, token);
 
-            // Create the new material
-            material = new Material(token);
-			model_data.material_stock.push_back(material);
+            // Create and store the new material
+			model_data->material_stock.emplace_back(new Material(token));
+            material = model_data->material_stock.back();
         }
 
 
@@ -377,48 +373,48 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ka") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::AMBIENT);
-            model_data.textures++;
+            material->setTexturePath(relative + token, Material::AMBIENT);
+            model_data->textures++;
         }
 
         // Diffuse texture
         else if (token == "map_kd") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::DIFFUSE);
-            model_data.textures++;
+            material->setTexturePath(relative + token, Material::DIFFUSE);
+            model_data->textures++;
         }
 
         // Specular texture
         else if (token == "map_ks") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::SPECULAR);
-            model_data.textures++;
+            material->setTexturePath(relative + token, Material::SPECULAR);
+            model_data->textures++;
         }
 
         // Shininess texture
         else if (token == "map_ns") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::SHININESS);
-            model_data.textures++;
+            material->setTexturePath(relative + token, Material::SHININESS);
+            model_data->textures++;
         }
 
         // Normal texture
 		else if ((token == "map_bump") || (token == "bump") || (token == "kn")) {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::NORMAL);
-            model_data.textures++;
+            material->setTexturePath(relative + token, Material::NORMAL);
+            model_data->textures++;
         }
 
         // Displacement texture
         else if (token == "disp") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(dir + token, Material::DISPLACEMENT);
-            model_data.textures++;
+            material->setTexturePath(relative + token, Material::DISPLACEMENT);
+            model_data->textures++;
         }
 
         // Cube map texture
@@ -434,7 +430,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             if (token == "cube_right") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[0] = dir + token;
+                cube_map_path[0] = relative + token;
                 is_cube = true;
             }
 
@@ -442,7 +438,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_left") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[1] = dir + token;
+                cube_map_path[1] = relative + token;
                 is_cube = true;
             }
 
@@ -450,7 +446,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_top") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[2] = dir + token;
+                cube_map_path[2] = relative + token;
                 is_cube = true;
             }
 
@@ -458,7 +454,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_bottom") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[3] = dir + token;
+                cube_map_path[3] = relative + token;
                 is_cube = true;
             }
 
@@ -466,7 +462,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_front") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[4] = dir + token;
+                cube_map_path[4] = relative + token;
                 is_cube = true;
             }
 
@@ -474,13 +470,13 @@ bool OBJLoader::readMTL(const std::string &mtl) {
             else if (token == "cube_back") {
                 stream >> std::ws;
                 std::getline(stream, token);
-                cube_map_path[5] = dir + token;
+                cube_map_path[5] = relative + token;
                 is_cube = true;
             }
 
             // Count texture set load cube map true
             if (is_cube) {
-                model_data.textures++;
+                model_data->textures++;
                 load_cube_map = true;
             }
         }
@@ -490,7 +486,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
     file.close();
 
     // Return true if not error has been found
-    model_data.material_open = true;
+    model_data->material_open = true;
     return true;
 }
 

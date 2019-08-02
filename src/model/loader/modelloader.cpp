@@ -25,7 +25,7 @@ ModelLoader::Vertex::Vertex() :
 
 // Model loader constructor
 ModelLoader::ModelLoader(const std::string &path) :
-    model_data(path) {}
+    model_data(new ModelData(path)) {}
 
 
 // Private methods
@@ -33,17 +33,17 @@ ModelLoader::ModelLoader(const std::string &path) :
 // Load data to GPU
 void ModelLoader::load() {
     // Vertex array object
-    glGenVertexArrays(1, &model_data.vao);
-    glBindVertexArray(model_data.vao);
+    glGenVertexArrays(1, &model_data->vao);
+    glBindVertexArray(model_data->vao);
 
     // Vertex buffer object
-    glGenBuffers(1, &model_data.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, model_data.vbo);
+    glGenBuffers(1, &model_data->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, model_data->vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(ModelLoader::Vertex) * vertex_stock.size(), &vertex_stock[0], GL_STATIC_DRAW);
 
     // Element array buffer
-    glGenBuffers(1, &model_data.ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_data.ebo);
+    glGenBuffers(1, &model_data->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_data->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * index_stock.size(), &index_stock[0], GL_STATIC_DRAW);
 
     // Position attribute
@@ -80,7 +80,7 @@ ModelLoader::~ModelLoader() {}
 // Public static methods
 
 // Read and load data
-ModelData ModelLoader::load(const std::string &path, const ModelLoader::Format &format) {
+ModelData *ModelLoader::load(const std::string &path, const ModelLoader::Format &format) {
     // Create a null model loader
     ModelLoader *loader = nullptr;
 
@@ -91,7 +91,7 @@ ModelData ModelLoader::load(const std::string &path, const ModelLoader::Format &
         // Return empty model data if the format is unknown
         default:
             std::cerr << "error: unknown model loader format `" << format << "'" << std::endl;
-            return ModelData(path);
+            return new ModelData(path);
     }
 
     // Read and load data
@@ -99,8 +99,8 @@ ModelData ModelLoader::load(const std::string &path, const ModelLoader::Format &
         loader->load();
     }
 
-    // Get the model data and delete the loader
-    ModelData model_data(loader->model_data);
+    // Get the model data and delete loader
+    ModelData *model_data = loader->model_data;
     delete loader;
 
     // Return the model data

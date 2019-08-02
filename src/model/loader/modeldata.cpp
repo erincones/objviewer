@@ -36,3 +36,19 @@ ModelData::ModelData(const std::string &path) :
     elements(0U),
     triangles(0U),
     textures(0U) {}
+
+
+// Destructor
+
+// Model data destructor
+ModelData::~ModelData() {
+    // Delete all objects
+    for (const ModelData::Object *const object : object_stock) {
+        delete object;
+    }
+
+    // Delete all materials
+    for (const Material *const material : material_stock) {
+        delete material;
+    }
+}
