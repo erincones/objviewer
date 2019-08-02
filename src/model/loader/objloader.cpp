@@ -309,6 +309,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
 
             // Create and store the new material
 			model_data->material_stock.emplace_back(new Material(token));
+            material = model_data->material_stock.back();
         }
 
 
