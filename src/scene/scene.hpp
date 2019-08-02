@@ -42,13 +42,13 @@ class Scene {
 
 
         /** Camera stock */
-        std::map<unsigned int, Camera *> camera_stock;
+        std::map<std::size_t, Camera *> camera_stock;
 
         /** Model stock */
-        std::map<unsigned int, Model *> model_stock;
+        std::map<std::size_t, std::pair<Model *, std::size_t> > model_stock;
 
         /** Program stock */
-        std::map<unsigned int, GLSLProgram *> program_stock;
+        std::map<std::size_t, GLSLProgram *> program_stock;
 
 
         // Constructors
@@ -66,10 +66,10 @@ class Scene {
         // Static attributes
 
         /** Instances counter */
-        static unsigned int instances;
+        static std::size_t instances;
 
         /** Elements unique ID's */
-        static unsigned int element_id;
+        static std::size_t element_id;
 
         /** Glad loaded flag */
         static bool initialized_glad;
@@ -113,43 +113,46 @@ class Scene {
 
 
         /** Get camera by ID */
-        Camera *getCamera(const unsigned int &id = 0U) const;
+        Camera *getCamera(const std::size_t &id = 0U) const;
 
         /** Get model by ID */
-        Model *getModel(const unsigned int &id) const;
+        Model *getModel(const std::size_t &id) const;
 
         /** Get program by ID */
-        GLSLProgram *getProgram(const unsigned int &id) const;
+        GLSLProgram *getProgram(const std::size_t &id) const;
 
 
         // Setters
 
-        /** Set title */
-        void setTitle(const std::string &new_title);
-
+        /** Select current camara */
+        bool selectCamera(const std::size_t &id);
 
         /** Add camera */
-        unsigned int addCamera(const bool &orthogonal = false);
-
-        /** Select current camara */
-        bool selectCamera(const unsigned int &id);
+        std::size_t addCamera(const bool &orthogonal = false);
 
 
         /** Add empty model */
-        unsigned int addModel();
+        std::size_t addModel();
 
         /** Add model */
-        unsigned int addModel(const std::string &path, const unsigned int &program_id = 0U);
+        std::size_t addModel(const std::string &path, const std::size_t &program_id = 0U);
 
 
         /** Add empty GLSL program */
-        unsigned int addProgram();
+        std::size_t addProgram();
 
         /** Add GLSL program without geometry shader */
-        unsigned int addProgram(const std::string &vert, const std::string &frag);
+        std::size_t addProgram(const std::string &vert, const std::string &frag);
 
         /** Add GLSL program */
-        unsigned int addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        std::size_t addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+
+
+        /** Set title */
+        void setTitle(const std::string &new_title);
+
+        /** Set program to model */
+        std::size_t setProgramToModel(const std::size_t &program_id, const std::size_t &model_id);
 
 
         // Methods
@@ -159,13 +162,13 @@ class Scene {
 
 
         /** Remove camera */
-        bool removeCamera(const unsigned int &id);
+        bool removeCamera(const std::size_t &id);
 
         /** Remove camera */
-        bool removeModel(const unsigned int &id);
+        bool removeModel(const std::size_t &id);
 
         /** Remove program */
-        bool removeProgram(const unsigned int &id);
+        bool removeProgram(const std::size_t &id);
 
 
         // Destructor
@@ -183,10 +186,10 @@ class Scene {
         // Static setters
 
         /** Set the default program without geometry shader */
-        static GLSLProgram *setDefaultProgram(const std::string &vert, const std::string &frag);
+        static void setDefaultProgram(const std::string &vert, const std::string &frag);
 
         /** Set the default program */
-        static GLSLProgram *setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        static void setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag);
 };
 
 #endif // __SCENE_HPP_

@@ -23,6 +23,7 @@ void Model::load() {
 
     // Set the geometry
     origin_mat = model_data->origin_mat;
+    model_origin_mat = model_mat * origin_mat;
     min = model_data->min;
     max = model_data->max;
 
@@ -91,9 +92,10 @@ void Model::updateMatrices() {
     const glm::mat4 rotation_mat    = glm::mat4_cast(rotation);
     const glm::mat4 scale_mat       = glm::scale(identity, dimension);
 
-    // Update the model and normal matrix
+    // Update the model, model_origin and normal matrix
     const glm::mat4 translation_rotation_mat = translation_mat * rotation_mat;
     model_mat = translation_rotation_mat * scale_mat;
+    model_origin_mat = model_mat * origin_mat;
     normal_mat = glm::inverse(glm::transpose(translation_rotation_mat));
 }
 
@@ -105,10 +107,12 @@ Model::Model() :
     
     // Geometry
     position(0.0F),
+    rotation(glm::quat()),
     dimension(1.0F),
     
     // Matrices
     model_mat(1.0F),
+    model_origin_mat(1.0F),
     normal_mat(1.0F) {}
 
 // Model constructor
@@ -117,10 +121,12 @@ Model::Model(const std::string &path) :
     
     // Geometry
     position(0.0F),
+    rotation(glm::quat()),
     dimension(1.0F),
     
     // Matrices
     model_mat(1.0F),
+    model_origin_mat(1.0F),
     normal_mat(1.0F) {
     // Load the model
     load();
@@ -311,7 +317,7 @@ void Model::draw(GLSLProgram *const program) const {
     program->use();
 
     // Set model uniforms
-    program->setUniform("model_mat", model_mat);
+    program->setUniform("model_mat", model_origin_mat);
     program->setUniform("normal_mat", normal_mat);
 
     // Bind the vertex array object

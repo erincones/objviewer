@@ -36,7 +36,20 @@ int main (int argc, char **argv) {
     Scene::setDefaultProgram(common_vert_shader, shader_path + "normals.frag.glsl");
 
     // Add the models
-    scene->addModel(model_path + "suzanne" + DIR_SEP + "suzanne.obj");
+    std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
+    std::size_t model_id_1 = scene->addModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj");
+    std::size_t model_id_2 = scene->addModel(model_path + "box"      + DIR_SEP + "box.obj");
+
+    // Setup models
+    Model *model = scene->getModel(model_id_0);
+
+    model = scene->getModel(model_id_1);
+    model->setScale(glm::vec3(0.45F));
+    model->setPosition(glm::vec3(0.6F, 0.225F, 0.0F));
+
+    model = scene->getModel(model_id_2);
+    model->setScale(glm::vec3(0.45F));
+    model->setPosition(glm::vec3(0.6F, -0.225F, 0.0F));
 
 
     // Esecute the main loop

@@ -29,6 +29,7 @@ TARGET := $(BIN)/$(PROJECT)
 # Targets
 .PHONY: release debug clean
 
+release: FLAGS += -Os
 release: $(TARGET)
 
 debug: FLAGS += -g3

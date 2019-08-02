@@ -37,6 +37,9 @@ class Model : private ModelData {
         /** Model matrix */
         glm::mat4 model_mat;
 
+        /** Origin matrix multiply by the model matrix */
+        glm::mat4 model_origin_mat;
+
         /** Normal matrix */
         glm::mat3 normal_mat;
 

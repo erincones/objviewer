@@ -6,10 +6,10 @@
 // Private static attributes
 
 // Instances counter
-unsigned int Scene::instances = 0U;
+std::size_t Scene::instances = 0U;
 
 // Elements unique ID's
-unsigned int Scene::element_id = 0U;
+std::size_t Scene::element_id = 0U;
 
 // Glad loaded flag
 bool Scene::initialized_glad = false;
@@ -38,7 +38,7 @@ void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
     // Update all cameras resolution
     const glm::vec2 resolution(width, height);
-    for (const std::pair<const unsigned int, Camera *const> &camera_data : scene->camera_stock) {
+    for (const std::pair<const std::size_t, Camera *const> &camera_data : scene->camera_stock) {
         camera_data.second->setResolution(resolution);
     }
 }
@@ -162,43 +162,30 @@ Camera *Scene::getCurrentCamera() const {
 
 
 // Get camera by ID
-Camera *Scene::getCamera(const unsigned int &id) const {
-    std::map<unsigned int, Camera *>::const_iterator result = camera_stock.find(id);
+Camera *Scene::getCamera(const std::size_t &id) const {
+    std::map<std::size_t, Camera *>::const_iterator result = camera_stock.find(id);
     return result == camera_stock.end() ? nullptr : result->second;
 }
 
 // Get model by ID
-Model *Scene::getModel(const unsigned int &id) const {
-    std::map<unsigned int, Model *>::const_iterator result = model_stock.find(id);
-    return result == model_stock.end() ? nullptr : result->second;
+Model *Scene::getModel(const std::size_t &id) const {
+    std::map<std::size_t, std::pair<Model *, std::size_t> >::const_iterator result = model_stock.find(id);
+    return result == model_stock.end() ? nullptr : result->second.first;
 }
 
 // Get program by ID
-GLSLProgram *Scene::getProgram(const unsigned int &id) const {
-    std::map<unsigned int, GLSLProgram *>::const_iterator result = program_stock.find(id);
+GLSLProgram *Scene::getProgram(const std::size_t &id) const {
+    std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(id);
     return result == program_stock.end() ? nullptr : result->second;
 }
 
 
 // Setters
 
-// Set title
-void Scene::setTitle(const std::string &new_title) {
-    title = new_title;
-    glfwSetWindowTitle(window, title.c_str());
-}
-
-
-// Add camera
-unsigned int Scene::addCamera(const bool &orthogonal) {
-    camera_stock[Scene::element_id] = new Camera(width, height);
-    return Scene::element_id++;
-}
-
 // Select current camara
-bool Scene::selectCamera(const unsigned int &id) {
+bool Scene::selectCamera(const std::size_t &id) {
     // Find camera
-    std::map<unsigned int, Camera *>::const_iterator result = camera_stock.find(id);
+    std::map<std::size_t, Camera *>::const_iterator result = camera_stock.find(id);
     
     // Return false if the camera does not exists
     if (result == camera_stock.end()) {
@@ -210,36 +197,70 @@ bool Scene::selectCamera(const unsigned int &id) {
     return true;
 }
 
+// Add camera
+std::size_t Scene::addCamera(const bool &orthogonal) {
+    camera_stock[Scene::element_id] = new Camera(width, height, orthogonal);
+    return Scene::element_id++;
+}
+
 
 // Add empty model
-unsigned int Scene::addModel() {
-    model_stock[Scene::element_id] = new Model();
+std::size_t Scene::addModel() {
+    model_stock[Scene::element_id] = std::pair<Model *, std::size_t>(new Model(), 0U);
     return Scene::element_id++;
 }
 
 // Add model
-unsigned int Scene::addModel(const std::string &path, const unsigned int &program_id) {
-    model_stock[Scene::element_id] = new Model(path);
+std::size_t Scene::addModel(const std::string &path, const std::size_t &program_id) {
+    model_stock[Scene::element_id] = std::pair<Model *, std::size_t>(new Model(path), program_id);
     return Scene::element_id++;
 }
 
 
 // Add empty GLSL program
-unsigned int Scene::addProgram() {
+std::size_t Scene::addProgram() {
     program_stock[Scene::element_id] = new GLSLProgram();
     return Scene::element_id++;
 }
 
 // Add GLSL program without geometry shader
-unsigned int Scene::addProgram(const std::string &vert, const std::string &frag) {
+std::size_t Scene::addProgram(const std::string &vert, const std::string &frag) {
     program_stock[Scene::element_id] = new GLSLProgram(vert, frag);
     return Scene::element_id++;
 }
 
 // Add GLSL program
-unsigned int Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
+std::size_t Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
     program_stock[Scene::element_id] = new GLSLProgram(vert, geom, frag);
     return Scene::element_id++;
+}
+
+
+// Set title
+void Scene::setTitle(const std::string &new_title) {
+    title = new_title;
+    glfwSetWindowTitle(window, title.c_str());
+}
+
+// Set program to model
+std::size_t Scene::setProgramToModel(const std::size_t &program_id, const std::size_t &model_id) {
+    // Search the model
+    std::map<std::size_t, std::pair<Model *, std::size_t> >::iterator result = model_stock.find(model_id);
+
+    // Return zero if the model does not exists
+    if (result ==  model_stock.end()) {
+        std::cerr << "error: could not found the model with id " << model_id << std::endl;
+        return 0U;
+    }
+
+    // Get the previous program ID
+    const std::size_t previous_program = result->second.second;
+
+    // Set the program ID to the model
+    result->second.second = program_id;
+
+    // Return the previous program ID
+    return previous_program;
 }
 
 
@@ -253,12 +274,33 @@ void Scene::mainLoop() {
         return;
     }
 
+    // Check if the default program is not null
+    if (Scene::default_program == nullptr) {
+        std::cerr << "warning: the default program has not been set" << std::endl;
+    }
+
     // The rendering main loop
     while (glfwWindowShouldClose(window) == GLFW_FALSE) {
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // For each model in the stock
+        for (const std::pair<const std::size_t, std::pair<const Model *const, const std::size_t> > model_data : model_stock) {
+            // Check the model status
+            if (!model_data.second.first->isOpen()) {
+                continue;
+            }
 
+            // Check the program status
+            std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(model_data.second.second);
+            GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second);
+
+            // Bind the camera
+            current_camera->bind(program);
+
+            // Draw the model
+            model_data.second.first->draw(program);
+        }
 
         // Poll events and swap buffers
         glfwPollEvents();
@@ -268,7 +310,7 @@ void Scene::mainLoop() {
 
 
 // Remove camera
-bool Scene::removeCamera(const unsigned int &id) {
+bool Scene::removeCamera(const std::size_t &id) {
     // Check the camera stock size
     if (camera_stock.size()) {
         std::cerr << "error: the camera stock could not be empty" << std::endl;
@@ -276,7 +318,7 @@ bool Scene::removeCamera(const unsigned int &id) {
     }
 
     // Find the camera
-    std::map<unsigned int, Camera *>::const_iterator result = camera_stock.find(id);
+    std::map<std::size_t, Camera *>::const_iterator result = camera_stock.find(id);
 
     // Return false if the camera does not exists
     if (result == camera_stock.end()) {
@@ -296,14 +338,26 @@ bool Scene::removeCamera(const unsigned int &id) {
 }
 
 // Remove camera
-bool Scene::removeModel(const unsigned int &id) {
+bool Scene::removeModel(const std::size_t &id) {
+    // Search the model
+    std::map<std::size_t, std::pair<Model *, std::size_t> >::const_iterator result = model_stock.find(id);
 
+    // Return false if the model does not exists
+    if (result == model_stock.end()) {
+        return false;
+    }
+
+    // Delete the model
+    delete result->second.first;
+    model_stock.erase(result);
+
+    return true;
 }
 
 // Remove program
-bool Scene::removeProgram(const unsigned int &id) {
-    // Find the program
-    std::map<unsigned int, GLSLProgram *>::const_iterator result = program_stock.find(id);
+bool Scene::removeProgram(const std::size_t &id) {
+    // Search the program
+    std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(id);
 
     // Return false if the program does not exists
     if (result == program_stock.end()) {
@@ -323,17 +377,17 @@ bool Scene::removeProgram(const unsigned int &id) {
 // Scene destructor
 Scene::~Scene() {
     // Delete cameras
-    for (const std::pair<const unsigned int, const Camera *const> &camera_data : camera_stock) {
+    for (const std::pair<const std::size_t, const Camera *const> &camera_data : camera_stock) {
         delete camera_data.second;
     }
 
     // Delete models
-    for (const std::pair<const unsigned int, const Model *const> &model_data : model_stock) {
-        delete model_data.second;
+    for (const std::pair<const std::size_t, std::pair<const Model *const, std::size_t> > &model_data : model_stock) {
+        delete model_data.second.first;
     }
 
     // Delete programs
-    for (const std::pair<const unsigned int, const GLSLProgram *const> &program_data : program_stock) {
+    for (const std::pair<const std::size_t, const GLSLProgram *const> &program_data : program_stock) {
         delete program_data.second;
     }
 
@@ -371,7 +425,7 @@ GLSLProgram *Scene::getDefaultProgram() {
 // Static setters
 
 // Set the default program without geometry shader
-GLSLProgram *Scene::setDefaultProgram(const std::string &vert, const std::string &frag) {
+void Scene::setDefaultProgram(const std::string &vert, const std::string &frag) {
     // Delete previous default program
     if (Scene::default_program != nullptr) {
         delete Scene::default_program;
@@ -382,7 +436,7 @@ GLSLProgram *Scene::setDefaultProgram(const std::string &vert, const std::string
 }
 
 // Set the default program
-GLSLProgram *Scene::setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
+void Scene::setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
     // Delete previous default program
     if (Scene::default_program != nullptr) {
         delete Scene::default_program;
@@ -391,4 +445,3 @@ GLSLProgram *Scene::setDefaultProgram(const std::string &vert, const std::string
     // Create the new default program
     Scene::default_program = new GLSLProgram(vert, geom, frag);
 }
-

@@ -211,7 +211,7 @@ void Camera::setClipping(const glm::vec2 &clipping) {
 // Reset to default values
 void Camera::reset() {
     // View default values
-    position = glm::vec3(0.0F, 0.0F, -2.0F);
+    position = glm::vec3(0.0F, 0.0F,  2.0F);
     front    = glm::vec3(0.0F, 0.0F, -1.0F);
     right    = glm::vec3(1.0F, 0.0F,  0.0F);
     up       = glm::vec3(0.0F, 1.0F,  0.0F);
