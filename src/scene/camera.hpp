@@ -222,6 +222,12 @@ class Camera {
         void rotate(const glm::vec2 &delta);
 
 
+        // Destructor
+
+        /** Camera destructor */
+        virtual ~Camera();
+
+
         // Static getters
 
         /** Get the boost status */

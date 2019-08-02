@@ -302,6 +302,12 @@ void Camera::rotate(const glm::vec2 &delta) {
 }
 
 
+// Destructor
+
+// Camera destructor
+Camera::~Camera() {}
+
+
 // Static getters
 
 // Get the boost status

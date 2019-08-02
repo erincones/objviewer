@@ -17,7 +17,7 @@
 
 
 class Scene {
-    private:
+    protected:
         // Attributes
 
         /** Window */
@@ -61,6 +61,12 @@ class Scene {
 
         /** Disable the assignation operator */
         Scene &operator=(const Scene &) = delete;
+
+
+        // Methods
+
+        /** Draw the scene */
+        void drawScene();
 
 
         // Static attributes
@@ -158,7 +164,7 @@ class Scene {
         // Methods
 
         /** Render main loop */
-        void mainLoop();
+        virtual void mainLoop();
 
 
         /** Remove camera */
@@ -174,7 +180,7 @@ class Scene {
         // Destructor
 
         /** Scene destructor */
-        ~Scene();
+        virtual ~Scene();
 
 
         // Static getters

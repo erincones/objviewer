@@ -249,7 +249,7 @@ class Material {
         // Destructor
 
         /** Material destructor */
-        ~Material();
+        virtual ~Material();
 
 
         // Static methods

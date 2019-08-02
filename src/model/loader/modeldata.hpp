@@ -108,7 +108,7 @@ class ModelData {
         // Destructor
 
         /** Model data destructor */
-        ~ModelData();
+        virtual ~ModelData();
 };
 
 #endif // __MODEL_DATA_HPP_

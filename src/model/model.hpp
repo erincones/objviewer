@@ -191,7 +191,7 @@ class Model : private ModelData {
         // Destructor
 
         /** Model destructor */
-        ~Model();
+        virtual ~Model();
 };
 
 #endif // __MODEL_HPP_

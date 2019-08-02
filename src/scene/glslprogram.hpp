@@ -140,7 +140,7 @@ class GLSLProgram {
         // Destructor
 
         /** GLSL program destructor */
-        ~GLSLProgram();
+        virtual ~GLSLProgram();
 
 };
 

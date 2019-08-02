@@ -44,6 +44,29 @@ void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height)
 }
 
 
+// Private methods
+
+// Draw the scene
+void Scene::drawScene() {
+    for (const std::pair<const std::size_t, std::pair<const Model *const, const std::size_t> > model_data : model_stock) {
+        // Check the model status
+        if (!model_data.second.first->isOpen()) {
+            continue;
+        }
+
+        // Check the program status
+        std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(model_data.second.second);
+        GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second);
+
+        // Bind the camera
+        current_camera->bind(program);
+
+        // Draw the model
+        model_data.second.first->draw(program);
+    }
+}
+
+
 // Constructor
 
 // Scene constructor
@@ -55,7 +78,10 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     height(height),
 
     // Clear color
-    clear_color(0.45F, 0.55F, 0.60F) {
+    clear_color(0.45F, 0.55F, 0.60F),
+    
+    // Current camera
+    current_camera(nullptr) {
     // Create window flag
     bool create_window = true;
 
@@ -127,7 +153,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     }
 
     // Load default textures if there are no instances
-    if (Scene::instances == 0U) {
+    if ((Scene::instances == 0U) && Scene::initialized_glad) {
         Material::createDefaultTextures();
     }
 
@@ -284,23 +310,8 @@ void Scene::mainLoop() {
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // For each model in the stock
-        for (const std::pair<const std::size_t, std::pair<const Model *const, const std::size_t> > model_data : model_stock) {
-            // Check the model status
-            if (!model_data.second.first->isOpen()) {
-                continue;
-            }
-
-            // Check the program status
-            std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(model_data.second.second);
-            GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second);
-
-            // Bind the camera
-            current_camera->bind(program);
-
-            // Draw the model
-            model_data.second.first->draw(program);
-        }
+        // Draw the scene
+        drawScene();
 
         // Poll events and swap buffers
         glfwPollEvents();
@@ -402,15 +413,14 @@ Scene::~Scene() {
         glfwDestroyWindow(window);
     }
 
-
-    // Discount instance
-    Scene::instances--;
-
-    // Terminate GLFW if there are no instances
-    if (Scene::instances == 0U) {
+    // Delete textures and terminate GLFW if is the last instance
+    if ((Scene::instances == 1U) && Scene::initialized_glad) {
         Material::deleteDefaultTextures();
         glfwTerminate();
     }
+
+    // Discount instance
+    Scene::instances--;
 }
 
 
