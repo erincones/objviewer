@@ -37,8 +37,8 @@ class Scene {
         glm::vec3 clear_color;
 
 
-        /** Current camera */
-        Camera *current_camera;
+        /** Active camera */
+        Camera *active_camera;
 
 
         /** Camera stock */
@@ -131,8 +131,8 @@ class Scene {
         glm::vec2 getResolution() const;
 
 
-        /** Get the current camera */
-        Camera *getCurrentCamera() const;
+        /** Get the active camera */
+        Camera *getActiveCamera() const;
 
 
         /** Get camera by ID */
@@ -151,7 +151,7 @@ class Scene {
 
         // Setters
 
-        /** Select current camara */
+        /** Select the active camara */
         bool selectCamera(const std::size_t &id);
 
         /** Add camera */

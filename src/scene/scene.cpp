@@ -9,7 +9,7 @@
 std::size_t Scene::instances = 0U;
 
 // Elements unique ID's
-std::size_t Scene::element_id = 0U;
+std::size_t Scene::element_id = 1U;
 
 // Glad loaded flag
 bool Scene::initialized_glad = false;
@@ -72,7 +72,7 @@ void Scene::drawScene() {
         GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second);
 
         // Bind the camera
-        current_camera->bind(program);
+        active_camera->bind(program);
 
         // Draw the model
         model_data.second.first->draw(program);
@@ -93,8 +93,8 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     // Clear color
     clear_color(0.45F, 0.55F, 0.60F),
     
-    // Current camera
-    current_camera(nullptr) {
+    // Active camera
+    active_camera(nullptr) {
     // Create window flag
     bool create_window = true;
 
@@ -121,8 +121,8 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
         // Create the default camera
-        current_camera = new Camera(width, height);
-        camera_stock[Scene::element_id++] = current_camera;
+        active_camera = new Camera(width, height);
+        camera_stock[Scene::element_id++] = active_camera;
     }
 
     // Check the window creation
@@ -200,9 +200,9 @@ glm::vec2 Scene::getResolution() const {
 }
 
 
-// Get the current camera
-Camera *Scene::getCurrentCamera() const {
-    return current_camera;
+// Get the active camera
+Camera *Scene::getActiveCamera() const {
+    return active_camera;
 }
 
 
@@ -233,7 +233,7 @@ double Scene::getFrames() const {
 
 // Setters
 
-// Select current camara
+// Select the active camara
 bool Scene::selectCamera(const std::size_t &id) {
     // Find camera
     std::map<std::size_t, Camera *>::const_iterator result = camera_stock.find(id);
@@ -243,8 +243,8 @@ bool Scene::selectCamera(const std::size_t &id) {
         return false;
     }
 
-    // Select the new current camera
-    current_camera = result->second;
+    // Select the new active camera
+    active_camera = result->second;
     return true;
 }
 
@@ -365,8 +365,8 @@ bool Scene::removeCamera(const std::size_t &id) {
     }
 
     // Update the current camera if is selected to delete
-    if (result->second == current_camera) {
-        current_camera = std::next(result, result->second == camera_stock.rbegin()->second ? -1 : 1)->second;
+    if (result->second == active_camera) {
+        active_camera = std::next(result, result->second == camera_stock.rbegin()->second ? -1 : 1)->second;
     }
 
     // Delete camera
