@@ -13,6 +13,9 @@
 
 #pragma once
 
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
+
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
@@ -23,12 +26,12 @@
 //#define IMGUI_API __declspec( dllimport )
 
 //---- Don't define obsolete functions/enums names. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.
-//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 //---- Don't implement demo windows functionality (ShowDemoWindow()/ShowStyleEditor()/ShowUserGuide() methods will be empty)
 // It is very strongly recommended to NOT disable the demo windows during development. Please read the comments in imgui_demo.cpp.
-//#define IMGUI_DISABLE_DEMO_WINDOWS
-//#define IMGUI_DISABLE_METRICS_WINDOW
+#define IMGUI_DISABLE_DEMO_WINDOWS
+//#define IMGUI_DISABLE_ABOUT_WINDOW
 
 //---- Don't implement some functions to reduce linkage requirements.
 //#define IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS   // [Win32] Don't implement default clipboard handler. Won't use and link with OpenClipboard/GetClipboardData/CloseClipboard etc.
@@ -54,15 +57,14 @@
 
 //---- Define constructor and implicit cast operators to convert back<>forth between your math types and ImVec2/ImVec4.
 // This will be inlined as part of ImVec2 and ImVec4 class declarations.
-/*
 #define IM_VEC2_CLASS_EXTRA                                                 \
-        ImVec2(const MyVec2& f) { x = f.x; y = f.y; }                       \
-        operator MyVec2() const { return MyVec2(x,y); }
+        ImVec2(const glm::vec2& f) { x = f.x; y = f.y; }                    \
+        operator glm::vec2() const { return glm::vec2(x,y); }
 
 #define IM_VEC4_CLASS_EXTRA                                                 \
-        ImVec4(const MyVec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }     \
-        operator MyVec4() const { return MyVec4(x,y,z,w); }
-*/
+        ImVec4(const glm::vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }  \
+        operator glm::vec4() const { return glm::vec4(x,y,z,w); }
+
 
 //---- Using 32-bits vertex indices (default is 16-bits) is one way to allow large meshes with more than 64K vertices. 
 // Your renderer back-end will need to support it (most example renderer back-ends support both 16/32-bits indices).
@@ -85,9 +87,12 @@
 //#define IMGUI_DEBUG_TOOL_ITEM_PICKER_EX
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
-/*
 namespace ImGui
 {
-    void MyFunction(const char* name, const MyMatrix44& v);
+    // Helper to display a little (?) mark which shows a tooltip when hovered.
+    // In your own code you may want to display an actual icon if you are using a merged icon fonts (see misc/fonts/README.txt)
+    void HelpMarker(const char *desc, const bool &same_line = true);
+
+    // A red button thats returns true if is pressed
+    bool RemoveButton(const bool &same_line = true);
 }
-*/
