@@ -151,6 +151,90 @@ void InteractiveScene::showMainGUIWindow() {
         show_metrics_win     |= ImGui::Button("Metrics");
     }
 
+    // Scene section
+    if (ImGui::CollapsingHeader("Scene")) {
+        // OpenGL info
+        if (ImGui::TreeNodeEx("OpenGL", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Text("Vendor: %s",       Scene::opengl_vendor);
+            ImGui::Text("Renderer: %s",     Scene::opengl_renderer);
+            ImGui::Text("Version: %s",      Scene::opengl_version);
+            ImGui::Text("GLSL version: %s", Scene::glsl_version);
+            ImGui::TreePop();
+            ImGui::Separator();
+        }
+
+        // Window info
+        if (ImGui::TreeNodeEx("Window", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Text("Width:  %d",  width);
+            ImGui::SameLine(210.0F);
+            ImGui::Text("Seconds: %.3fs", glfwGetTime());
+            ImGui::Text("Height: %d", height);
+            ImGui::SameLine(210.0F);
+            ImGui::Text("Frames:  %.3fE3", kframes);
+            if (ImGui::ColorEdit3("Background", &clear_color.r)) {
+                glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
+            }
+            ImGui::TreePop();
+            ImGui::Separator();
+        }
+
+        // Scene statistics
+        if (ImGui::TreeNode("Statistics*")) {
+            // Models statistics variables
+            std::size_t vertices  = 0U;
+            std::size_t elements  = 0U;
+            std::size_t triangles = 0U;
+            std::size_t materials = 0U;
+            std::size_t textures  = 0U;
+
+            // Calculate models statistics
+            for (const std::pair<const std::size_t, const std::pair<const Model *const, const std::size_t> > &model_data : model_stock) {
+                vertices  += model_data.second.first->getNumberOfVertices();
+                elements  += model_data.second.first->getNumberOfElements();
+                triangles += model_data.second.first->getNumberOfTriangles();
+                materials += model_data.second.first->getNumberOfMaterials();
+                textures  += model_data.second.first->getNumberOfTextures();
+            }
+
+            // Programs statistics variables
+            std::size_t shaders = 0U;
+            std::size_t default_shaders = Scene::default_program->getNumberOfShaders();
+
+            // Calculate program statistics
+            for (const std::pair<const std::size_t, const GLSLProgram *const> &program_data : program_stock) {
+                shaders += program_data.second->getNumberOfShaders();
+            }
+
+            // Cameras
+            ImGui::BulletText("Cameras: %lu", camera_stock.size());
+
+            // Models
+            if (ImGui::TreeNodeEx("modelstats", ImGuiTreeNodeFlags_DefaultOpen, "Models: %lu", model_stock.size())) {
+                ImGui::Text("Elements:  %lu", elements); InteractiveScene::helpMarker("Total of vertices");
+                ImGui::SameLine(210.0F);
+                ImGui::Text("Materials: %lu", materials);
+                ImGui::Text("Vertices:  %lu", vertices); InteractiveScene::helpMarker("Unique vertices");
+                ImGui::SameLine(210.0F);
+                ImGui::Text("Textures:  %lu", textures);
+                ImGui::Text("Triangles: %lu", triangles);
+                ImGui::TreePop();
+            }
+
+            // Programs
+            if (ImGui::TreeNodeEx("programsstats", ImGuiTreeNodeFlags_DefaultOpen, "GLSL programs: %lu + 2", program_stock.size())) {
+                ImGui::Text("Shaders: %lu + %lu", shaders, default_shaders); InteractiveScene::helpMarker("Loaded + Defaults");
+                ImGui::TreePop();
+            }
+
+            // Note
+            ImGui::Spacing();
+            ImGui::Text("*Including the elements with errors.");
+
+            // Pop statistics node
+            ImGui::TreePop();
+        }
+    }
+
     // End main window
     ImGui::End();
 }
@@ -179,7 +263,7 @@ void InteractiveScene::showAboutWindow() {
     ImGui::Text("GitHub repository:"); InteractiveScene::helpMarker("Click to select all and press\nCTRL+V to copy to clipboard");
 
     ImGui::PushItemWidth(-1.0F);
-    ImGui::InputText("###github", InteractiveScene::repository_url, sizeof(InteractiveScene::repository_url), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputText("repourl", InteractiveScene::repository_url, sizeof(InteractiveScene::repository_url), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
     ImGui::PopItemWidth();
 
     // End window
@@ -257,6 +341,9 @@ void InteractiveScene::mainLoop() {
         // Poll events and swap buffers
         glfwPollEvents();
         glfwSwapBuffers(window);
+
+        // Count frame
+        kframes += 0.001;
     }
 }
 
