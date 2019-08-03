@@ -51,6 +51,10 @@ class Scene {
         std::map<std::size_t, GLSLProgram *> program_stock;
 
 
+        /** Thousands of frames */
+        double kframes;
+
+
         // Constructors
 
         /** Disable the default constructor */
@@ -139,6 +143,10 @@ class Scene {
 
         /** Get program by ID */
         GLSLProgram *getProgram(const std::size_t &id) const;
+
+
+        /** Get frames */
+        double getFrames() const;
 
 
         // Setters

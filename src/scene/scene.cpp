@@ -225,6 +225,12 @@ GLSLProgram *Scene::getProgram(const std::size_t &id) const {
 }
 
 
+// Get frames
+double Scene::getFrames() const {
+    return kframes;
+}
+
+
 // Setters
 
 // Select current camara
@@ -335,6 +341,9 @@ void Scene::mainLoop() {
         // Poll events and swap buffers
         glfwPollEvents();
         glfwSwapBuffers(window);
+
+        // Count frame
+        kframes += 0.001;
     }
 }
 
