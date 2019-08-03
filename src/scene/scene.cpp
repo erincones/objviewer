@@ -15,6 +15,19 @@ std::size_t Scene::element_id = 0U;
 bool Scene::initialized_glad = false;
 
 
+// OpenGL vendor
+const GLubyte *Scene::opengl_vendor = nullptr;
+
+// OpenGL renderer
+const GLubyte *Scene::opengl_renderer = nullptr;
+
+// OpenGL version
+const GLubyte *Scene::opengl_version = nullptr;
+
+// GLSL version
+const GLubyte *Scene::glsl_version = nullptr;
+
+
 // Default program
 GLSLProgram *Scene::default_program = nullptr;
 
@@ -140,6 +153,12 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         else {
             // Set true the initialized Glad flag
             Scene::initialized_glad = true;
+
+            // Set the OpenGL strings
+            Scene::opengl_vendor   = glGetString(GL_VENDOR);
+            Scene::opengl_renderer = glGetString(GL_RENDERER);
+            Scene::opengl_version  = glGetString(GL_VERSION);
+            Scene::glsl_version    = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
             // Setup the swap interval
             glfwSwapInterval(1);
@@ -417,6 +436,15 @@ Scene::~Scene() {
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
         Material::deleteDefaultTextures();
         glfwTerminate();
+
+        // Reset initialized Glad flag
+        Scene::initialized_glad = false;
+
+        // Reset OpenGL strings
+        Scene::opengl_vendor   = nullptr;
+        Scene::opengl_renderer = nullptr;
+        Scene::opengl_version  = nullptr;
+        Scene::glsl_version    = nullptr;
     }
 
     // Discount instance
@@ -425,6 +453,27 @@ Scene::~Scene() {
 
 
 // Static getters
+
+// Get the OpenGL vendor
+const GLubyte *Scene::getOpenGLVendor() {
+    return Scene::opengl_vendor;
+}
+
+// Get the OpenGL renderer
+const GLubyte *Scene::getOpenGLRenderer() {
+    return Scene::opengl_renderer;
+}
+
+// Get the OpenGL version
+const GLubyte *Scene::getOpenGLVersion() {
+    return Scene::opengl_version;
+}
+
+// Get the GLSL version
+const GLubyte *Scene::getGLSLVersion() {
+    return Scene::glsl_version;
+}
+
 
 // Get the default program
 GLSLProgram *Scene::getDefaultProgram() {

@@ -81,6 +81,19 @@ class Scene {
         static bool initialized_glad;
 
 
+        /** OpenGL vendor */
+        static const GLubyte *opengl_vendor;
+
+        /** OpenGL renderer */
+        static const GLubyte *opengl_renderer;
+
+        /** OpenGL version */
+        static const GLubyte *opengl_version;
+
+        /** GLSL version */
+        static const GLubyte *glsl_version;
+
+
         /** Default program */
         static GLSLProgram *default_program;
 
@@ -184,6 +197,19 @@ class Scene {
 
 
         // Static getters
+
+        /** Get the OpenGL vendor */
+        static const GLubyte *getOpenGLVendor();
+
+        /** Get the OpenGL renderer */
+        static const GLubyte *getOpenGLRenderer();
+
+        /** Get the OpenGL version */
+        static const GLubyte *getOpenGLVersion();
+
+        /** Get the GLSL version */
+        static const GLubyte *getGLSLVersion();
+
 
         /** Get the default program */
         static GLSLProgram *getDefaultProgram();
