@@ -37,8 +37,15 @@ class InteractiveScene : public Scene {
         /** Draw the main window GUI */
         void showMainGUIWindow();
 
-        /** Draw the about window GUI */
-        void showAboutWindow();
+
+        /** Draw the camera widget */
+        bool cameraWidget(Camera *const camera, const std::size_t &id = 0U);
+
+        /** Draw the model widget */
+        bool modelWidget(std::pair<Model *const, std::size_t> &model_data, const std::size_t &id = 0U);
+
+        /** Draw the program widget */
+        bool programWidget(GLSLProgram *const program, const std::size_t &id = 0U);
 
 
         // Static attributes
@@ -51,10 +58,6 @@ class InteractiveScene : public Scene {
 
         /** GLFW framebuffer size callback */
         static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
-
-        /** Help marker widget */
-        static void helpMarker(const char *const text);
 
 
     public:
@@ -74,6 +77,12 @@ class InteractiveScene : public Scene {
 
         /** Interactive scene destructor */
         ~InteractiveScene();
+
+
+        // Static methods
+
+        /** Draw the about window GUI */
+        static void showAboutWindow(bool &show);
 };
 
 #endif // __INTERACTIVE_SCENE_HPP_

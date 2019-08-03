@@ -22,20 +22,6 @@ void InteractiveScene::framebuffer_size_callback(GLFWwindow *window, int width, 
 }
 
 
-// Help marker widget
-void InteractiveScene::helpMarker(const char *const text) {
-    ImGui::SameLine();
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(text);
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
-
-
 // Private methods
 
 // Draw the scene
@@ -51,7 +37,7 @@ void InteractiveScene::drawScene() {
         GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second);
 
         // Bind the camera
-        current_camera->bind(program);
+        active_camera->bind(program);
 
         // Draw the model
         model_data.second.first->draw(program);
@@ -72,12 +58,12 @@ void InteractiveScene::drawGUI() {
 
     // Show the main GUI window
     if (show_main_gui_win) {
-        InteractiveScene::showMainGUIWindow();
+        showMainGUIWindow();
     }
 
     // Show the about window
     if (show_about_win) {
-        InteractiveScene::showAboutWindow();
+        InteractiveScene::showAboutWindow(show_about_win);
     }
 
 	// Show the metrics built-in window
@@ -104,7 +90,7 @@ void InteractiveScene::showMainGUIWindow() {
     ImGui::SetNextWindowSize(ImVec2(470.0F, static_cast<float>(height)), ImGuiCond_Always);
 
     // Create the main GUI window
-    const bool open = ImGui::Begin("OBJViewer Settings", &show_main_gui_win, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+    const bool open = ImGui::Begin("Settings", &show_main_gui_win, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
     ImGui::PopStyleVar();
 
     // Abort if the window is not showing
@@ -171,6 +157,7 @@ void InteractiveScene::showMainGUIWindow() {
             ImGui::Text("Height: %d", height);
             ImGui::SameLine(210.0F);
             ImGui::Text("Frames:  %.3fE3", kframes);
+            ImGui::Spacing();
             if (ImGui::ColorEdit3("Background", &clear_color.r)) {
                 glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
             }
@@ -210,10 +197,10 @@ void InteractiveScene::showMainGUIWindow() {
 
             // Models
             if (ImGui::TreeNodeEx("modelstats", ImGuiTreeNodeFlags_DefaultOpen, "Models: %lu", model_stock.size())) {
-                ImGui::Text("Elements:  %lu", elements); InteractiveScene::helpMarker("Total of vertices");
+                ImGui::Text("Elements:  %lu", elements); ImGui::HelpMarker("Total of vertices");
                 ImGui::SameLine(210.0F);
                 ImGui::Text("Materials: %lu", materials);
-                ImGui::Text("Vertices:  %lu", vertices); InteractiveScene::helpMarker("Unique vertices");
+                ImGui::Text("Vertices:  %lu", vertices); ImGui::HelpMarker("Unique vertices");
                 ImGui::SameLine(210.0F);
                 ImGui::Text("Textures:  %lu", textures);
                 ImGui::Text("Triangles: %lu", triangles);
@@ -222,7 +209,7 @@ void InteractiveScene::showMainGUIWindow() {
 
             // Programs
             if (ImGui::TreeNodeEx("programsstats", ImGuiTreeNodeFlags_DefaultOpen, "GLSL programs: %lu + 2", program_stock.size())) {
-                ImGui::Text("Shaders: %lu + %lu", shaders, default_shaders); InteractiveScene::helpMarker("Loaded + Defaults");
+                ImGui::Text("Shaders: %lu + %lu", shaders, default_shaders); ImGui::HelpMarker("Loaded + Defaults");
                 ImGui::TreePop();
             }
 
@@ -235,39 +222,121 @@ void InteractiveScene::showMainGUIWindow() {
         }
     }
 
+    // Cameras section
+    if (ImGui::CollapsingHeader("Cameras")) {
+        // Active camera
+        ImGui::BulletText("Active");
+        ImGui::Indent();
+        cameraWidget(active_camera);
+        ImGui::Unindent();
+        ImGui::Spacing();
+
+        // Camera indices
+        std::size_t remove = 0U;
+
+        // Draw each camera node
+        for (const std::pair<const std::size_t, Camera *const> &camera_data : camera_stock) {
+            // ID and title strings
+            const std::string id = std::to_string(camera_data.first);
+            const std::string camera_title = "Camera " + id;
+
+            // Draw node and catch the selected to remove
+            if (ImGui::TreeNode(id.c_str(), camera_title.c_str())) {
+                if (!cameraWidget(camera_data.second, camera_data.first)) {
+                    remove = camera_data.first;
+                }
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove camera
+        if (remove != 0U) {
+            removeCamera(remove);
+        }
+
+        // Add camera button
+        ImGui::Spacing();
+        if (ImGui::Button("Add camera", ImVec2(454.0F, 19.0F))) {
+            addCamera();
+        }
+        ImGui::Spacing();
+    }
+
     // End main window
     ImGui::End();
 }
 
-// Draw the about window GUI
-void InteractiveScene::showAboutWindow() {
-    // Creates the about window
-    const bool open = ImGui::Begin("About OBJViewer", &show_about_win, ImGuiWindowFlags_NoResize);
 
-    // Abort if the window is not showing
-    if (!show_about_win || !open) {
-        ImGui::End();
-        return;
+// Draw the camera widget
+bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id) {
+    // Keep camera flag
+    bool keep = true;
+    
+    // For non active camera
+    if (id != 0U) {
+        // Select active button
+        bool active = camera == active_camera;
+        if (ImGui::Checkbox("Active", &active)) {
+            active_camera = camera;
+        }
+        // Remove button
+        if (camera_stock.size() > 1U) {
+            keep = !ImGui::RemoveButton();
+        }
+        ImGui::Spacing();
     }
 
-    // Title
-    ImGui::Text("OBJViewer - Another OBJ models viewer");
+    // Projection
+    bool orthogonal = camera->isOrthogonal();
+    if (ImGui::RadioButton("Perspective", !orthogonal)) {
+        camera->setOrthogonal(false);
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Orthogonal", orthogonal)) {
+        camera->setOrthogonal(true);
+    }
+    ImGui::SameLine(338.0F);
+    ImGui::Text("Projection");
+    
+    // Position
+    glm::vec3 value = camera->getPosition();
+    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+        camera->setPosition(value);
+    }
+    
+    // Direction
+    value = camera->getDirection();
+    if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+        camera->setDirection(value);
+    }
+    
+    // Clipping planes
+    glm::vec2 clipping = camera->getClipping();
+    if (ImGui::DragFloat2("Clipping", &clipping.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+        camera->setClipping(clipping);
+    }
+    ImGui::HelpMarker("(Near, Far)");
+
+    // Field of view
+    float fov = camera->getFOV();
+    if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4F")) {
+        camera->setFOV(fov);
+    }
+
+    // Separator for open nodes
     ImGui::Separator();
 
-    // Signature
-    ImGui::Text("By Erick Rincones 2019.");
-    ImGui::Text("OBJViewer is licensed under the MIT License, see LICENSE for more information.");
-    ImGui::Spacing();
+    return keep;
+}
 
-    // Repository
-    ImGui::Text("GitHub repository:"); InteractiveScene::helpMarker("Click to select all and press\nCTRL+V to copy to clipboard");
+// Draw the model widget
+bool InteractiveScene::modelWidget(std::pair<Model *const, std::size_t> &model_data, const std::size_t &id) {
+    return true;
+}
 
-    ImGui::PushItemWidth(-1.0F);
-    ImGui::InputText("repourl", InteractiveScene::repository_url, sizeof(InteractiveScene::repository_url), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
-    ImGui::PopItemWidth();
-
-    // End window
-    ImGui::End();
+// Draw the program widget
+bool InteractiveScene::programWidget(GLSLProgram *const program, const std::size_t &id) {
+    return true;
 }
 
 
@@ -358,4 +427,35 @@ InteractiveScene::~InteractiveScene() {
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
+}
+
+
+// Public static methods
+
+// Draw the about window GUI
+void InteractiveScene::showAboutWindow(bool &show) {
+    // Creates the about window and abort if is not showing
+    if (!ImGui::Begin("About OBJViewer", &show, ImGuiWindowFlags_NoResize)) {
+        ImGui::End();
+        return;
+    }
+
+    // Title
+    ImGui::Text("OBJViewer - Another OBJ models viewer");
+    ImGui::Separator();
+
+    // Signature
+    ImGui::Text("By Erick Rincones 2019.");
+    ImGui::Text("OBJViewer is licensed under the MIT License, see LICENSE for more information.");
+    ImGui::Spacing();
+
+    // Repository
+    ImGui::Text("GitHub repository:"); ImGui::HelpMarker("Click to select all and press\nCTRL+V to copy to clipboard");
+
+    ImGui::PushItemWidth(-1.0F);
+    ImGui::InputText("repourl", InteractiveScene::repository_url, sizeof(InteractiveScene::repository_url), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+    ImGui::PopItemWidth();
+
+    // End window
+    ImGui::End();
 }
