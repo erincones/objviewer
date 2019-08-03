@@ -1,4 +1,7 @@
-#include "imgui.h"
+#include "customwidgets.hpp"
+
+#include <cstring>
+
 
 // Helper to display a little (?) mark which shows a tooltip when hovered.
 void ImGui::HelpMarker(const char *desc, const bool &same_line) {
@@ -26,4 +29,22 @@ bool ImGui::RemoveButton(const bool &same_line) {
     bool pressed = ImGui::Button("Remove");
     ImGui::PopStyleColor(3);
     return pressed;
+}
+
+// ImGui::InputText() with std::string
+bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data) {
+    // String variables
+    char c_str[MAX_STR_BUF_SIZE] = {'\0'};
+    std::strcpy(c_str, str->c_str());
+
+    // Call to ImGui::InputText() with char *
+    bool modified = ImGui::InputText(label, c_str, MAX_STR_BUF_SIZE, flags, callback, user_data);
+
+    // Copy data to the std::string
+    if (modified) {
+        *str = c_str;
+    }
+
+    // Return the modified value
+    return modified;
 }
