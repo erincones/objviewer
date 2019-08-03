@@ -34,7 +34,7 @@ class GLSLProgram {
 
 
         /** Number of shaders */
-        unsigned int shaders;
+        std::size_t shaders;
 
 
         /** Uniform location stock */
@@ -93,6 +93,10 @@ class GLSLProgram {
 
         /** Get the path of a shader source of the program of the given type */
         std::string getShaderPath(const GLenum &type) const;
+
+
+        /** Get the number of shaders */
+        std::size_t getNumberOfShaders() const;
 
 
         // Setters
