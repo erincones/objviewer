@@ -1,5 +1,7 @@
 #include "model.hpp"
 
+#include "../dirsep.h"
+
 #include "loader/modelloader.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -104,6 +106,9 @@ void Model::updateMatrices() {
 // Empty model constructor
 Model::Model() :
     ModelData(std::string()),
+
+    // Enabled
+    enabled(true),
     
     // Geometry
     position(0.0F),
@@ -118,6 +123,9 @@ Model::Model() :
 // Model constructor
 Model::Model(const std::string &path) :
     ModelData(path),
+
+    // Enabled
+    enabled(true),
     
     // Geometry
     position(0.0F),
@@ -135,6 +143,12 @@ Model::Model(const std::string &path) :
 
 // Getters
 
+// Get the enabled status
+bool Model::isEnabled() const {
+    return enabled;
+}
+
+
 // Get the open status
 bool Model::isOpen() const {
     return model_open;
@@ -145,6 +159,11 @@ bool Model::isMaterialOpen() const {
     return material_open;
 }
 
+
+// Get the model name
+std::string Model::getName() const {
+    return model_path.substr(model_path.find_last_of(DIR_SEP) + 1U);
+}
 
 // Get the model file path
 std::string Model::getPath() const {
@@ -244,6 +263,12 @@ std::size_t Model::getNumberOfTextures() const {
 
 // Setters
 
+// Set the enabled status
+void Model::setEnabled(const bool &status) {
+    enabled = status;
+}
+
+
 // Set the new path
 void Model::setPath(const std::string &new_path) {
     model_path = new_path;
@@ -309,7 +334,7 @@ void Model::resetGeometry() {
 // Draw the model
 void Model::draw(GLSLProgram *const program) const {
     // Check model and program status
-    if (!model_open || (program == nullptr) || (!program->isValid())) {
+    if (!enabled || !model_open || (program == nullptr) || (!program->isValid())) {
         return;
     }
 

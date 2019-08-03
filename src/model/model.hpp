@@ -24,6 +24,10 @@ class Model : private ModelData {
     private:
         // Attributes
 
+        /** Enabled status */
+        bool enabled;
+
+
         /** Position */
         glm::vec3 position;
 
@@ -77,12 +81,19 @@ class Model : private ModelData {
 
         // Getters
 
+        /** Get the enabled status */
+        bool isEnabled() const;
+
+
         /** Get the open status */
         bool isOpen() const;
 
         /** Get the open material status */
         bool isMaterialOpen() const;
 
+
+        /** Get the model name */
+        std::string getName() const;
 
         /** Get the model file path */
         std::string getPath() const;
@@ -141,6 +152,10 @@ class Model : private ModelData {
 
 
         // Setters
+
+        /** Set the enabled status */
+        void setEnabled(const bool &status);
+
 
         /** Set the new path */
         void setPath(const std::string &new_path);
