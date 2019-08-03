@@ -351,7 +351,7 @@ void Scene::mainLoop() {
 // Remove camera
 bool Scene::removeCamera(const std::size_t &id) {
     // Check the camera stock size
-    if (camera_stock.size()) {
+    if (camera_stock.size() == 1U) {
         std::cerr << "error: the camera stock could not be empty" << std::endl;
         return false;
     }
