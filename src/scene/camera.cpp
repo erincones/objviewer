@@ -129,7 +129,7 @@ glm::mat4 Camera::getProjectionMatrix() const {
 // Setters
 
 // Set the orthogonal projection status
-void Camera::isOrthogonal(const bool &status) {
+void Camera::setOrthogonal(const bool &status) {
     orthogonal = status;
 }
 
@@ -137,6 +137,8 @@ void Camera::isOrthogonal(const bool &status) {
 // Set position
 void Camera::setPosition(const glm::vec3 &new_position) {
     position = new_position;
+    updateViewMatrix();
+    updateProjectionMatrices();
 }
 
 // Set look direction
@@ -180,7 +182,7 @@ void Camera::setUp(const glm::vec3 &direction) {
 // Set field of view
 void Camera::setFOV(const float &new_fov) {
     fov = glm::radians(new_fov);
-    updateProjectionMatrices();        
+    updateProjectionMatrices();
 }
 
 // Set resolution

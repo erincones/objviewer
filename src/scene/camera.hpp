@@ -172,7 +172,7 @@ class Camera {
         // Setters
 
         /** Set the orthogonal projection status */
-        void isOrthogonal(const bool &status);
+        void setOrthogonal(const bool &status);
 
 
         /** Set position */
