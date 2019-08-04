@@ -44,8 +44,11 @@ void Model::load() {
     triangles = model_data->triangles;
     textures  = model_data->textures;
 
+    // New default material
+    default_material = new Material("Default");
 
-    // Clea up the loader data
+
+    // Clean up the loader data
     model_data->object_stock.clear();
     model_data->material_stock.clear();
     delete model_data;
@@ -84,6 +87,12 @@ void Model::clear() {
     // Clear stocks
     object_stock.clear();
     material_stock.clear();
+
+    // Clear the default material
+    if (default_material != nullptr) {
+        delete default_material;
+        default_material = nullptr;
+    }
 }
 
 // Update the model and normal matrices
@@ -118,7 +127,10 @@ Model::Model() :
     // Matrices
     model_mat(1.0F),
     model_origin_mat(1.0F),
-    normal_mat(1.0F) {}
+    normal_mat(1.0F),
+    
+    // Default material
+    default_material(nullptr) {}
 
 // Model constructor
 Model::Model(const std::string &path) :
@@ -135,7 +147,10 @@ Model::Model(const std::string &path) :
     // Matrices
     model_mat(1.0F),
     model_origin_mat(1.0F),
-    normal_mat(1.0F) {
+    normal_mat(1.0F),
+    
+    // Default material
+    default_material(nullptr)  {
     // Load the model
     load();
 }
@@ -185,6 +200,11 @@ Material *Model::getMaterial(const std::size_t &index) const {
 
     // Return the material
     return material_stock[index];
+}
+
+// Get the default material
+Material *Model::getDefaultMaterial() const {
+    return default_material;
 }
 
 

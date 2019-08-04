@@ -48,6 +48,10 @@ class Model : private ModelData {
         glm::mat3 normal_mat;
 
 
+        /** Default material */
+        Material *default_material;
+
+
         // Constructors
 
         /** Disable the default copy constructor */
@@ -104,6 +108,9 @@ class Model : private ModelData {
 
         /** Get a material by index */
         Material *getMaterial(const std::size_t &index) const;
+
+        /** Get the default material */
+        Material *getDefaultMaterial() const;
 
 
         /** Get the origin matrix */
