@@ -67,9 +67,19 @@ void Scene::drawScene() {
             continue;
         }
 
-        // Check the program status
-        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
-        GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second).first;
+        // Get the program
+        GLSLProgram * program;
+
+        // Default program
+        if (model_data.second.second == 0U) {
+            program = Scene::default_program.first;
+        }
+
+        // Program associated to the model or default if not exists
+        else {
+            std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
+            GLSLProgram * program = (result == program_stock.end() ? Scene::default_program : result->second).first;
+        }
 
         // Bind the camera
         active_camera->bind(program);
