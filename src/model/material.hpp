@@ -79,80 +79,22 @@ class Material {
         std::string name;
 
 
-        /** Ambient color */
-		glm::vec3 ambient_color;
-
-        /** Diffuse color */
-		glm::vec3 diffuse_color;
-
-        /** Specular color */
-		glm::vec3 specular_color;
-
-        /** Transparency color */
-        glm::vec3 transparency_color;
+        /** Colors */
+		glm::vec3 color[4];
 
 
-        /** Shininess value */
-		float shininess;
-
-        /** Roughness value */
-		float roughness;
-
-        /** Metalness value */
-		float metalness;
-
-        /** Transparency value */
-        float transparency;
-
-        /** Displacement value */
-        float displacement;
-
-        /** Refractive index value */
-		float refractive_index;
+        /** Value */
+		float value[6];
 
 
-        /** Ambient texture */
-		GLuint ambient_tex;
+        /** Texture */
+		GLuint texture[7];
 
-        /** Diffuse texture */
-		GLuint diffuse_tex;
+        /** Texture enabled status */
+        bool texture_enabled[7];
 
-        /** Specular texture */
-		GLuint specular_tex;
-
-        /** Shininess texture */
-		GLuint shininess_tex;
-
-        /** Normal texture */
-		GLuint normal_tex;
-
-        /** Ambient texture */
-		GLuint displacement_tex;
-
-        /** Cube map texture */
-		GLuint cube_map_tex;
-
-
-        /** Ambient texture path */
-		std::string ambient_tex_path;
-
-        /** Diffuse texture path */
-		std::string diffuse_tex_path;
-
-        /** Specular texture path */
-		std::string specular_tex_path;
-
-        /** Shininess texture path */
-		std::string shininess_tex_path;
-
-        /** Normal texture path */
-		std::string normal_tex_path;
-
-        /** Displacement texture */
-		std::string displacement_tex_path;
-
-        /** Cube map texture paths */
-		std::string cube_map_tex_path[6];
+        /** Texture path */
+		std::string texture_path[12];
 
 
         // Constructors
@@ -167,17 +109,16 @@ class Material {
         Material &operator=(const Material &) = delete;
 
 
+        // Static const attributes
+
+        /** Texture attributes */
+        static const Material::Attribute TEXTURE_ATTRIBUTE[];
+
 
         // Static attributes
 
-        /** Default white texture */
-		static GLuint white_tex;
-
-        /** Default black texture */
-        static GLuint black_tex;
-
-        /** Default blue texture */
-        static GLuint blue_tex;
+        /** Default texture */
+		static GLuint default_texture[3];
 
 
         // Static methods
@@ -186,7 +127,7 @@ class Material {
         static GLuint createDefaultTexture(const glm::vec3 &color);
 
         /** Bind texture */
-        static void bindTexture(const GLenum &index, const GLuint &texture, const GLuint &default_texture);
+        static void bindTexture(const GLenum &index, const GLuint &texture);
 
         /** Load a 2D texture */
         static GLuint load2DTexture(const std::string &path);
@@ -215,6 +156,9 @@ class Material {
         /** Get the texture of the given attribute */
         GLuint getTexture(const Material::Attribute &attrib) const;
 
+        /** Get the texture enabled status */
+        bool isTextureEnabled(const Material::Attribute &attrib) const;
+
         /** Get the texture path of the given attribute */
         std::string getTexturePath(const Material::Attribute &attrib) const;
 
@@ -225,13 +169,16 @@ class Material {
         void setName(const std::string &new_name);
 
         /** Set the color of the given attribute */
-        void setColor(const glm::vec3 &color, const Material::Attribute &attrib);
+        void setColor(const Material::Attribute &attrib, const glm::vec3 &new_color);
 
         /** Set the value of the given attribute */
-        void setValue(const float &value, const Material::Attribute &attrib);
+        void setValue(const Material::Attribute &attrib, const float &new_value);
+
+        /** Get the texture enabled status */
+        void setTextureEnabled(const Material::Attribute &attrib, const bool &status);
 
         /** Set the texture path of the given attribute */
-        void setTexturePath(const std::string &path, const Material::Attribute &attrib);
+        void setTexturePath(const Material::Attribute &attrib, const std::string &path);
 
         /** Set the cube map texture path */
         void setCubeMapTexturePath(const std::string (&path)[6]);

@@ -318,25 +318,25 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         // Ambient color
         else if (token == "ka") {
             stream >> data.x >> data.y >> data.z;
-            material->setColor(data, Material::AMBIENT);
+            material->setColor(Material::AMBIENT, data);
         }
 
         // Diffuse color
         else if (token == "kd") {
             stream >> data.x >> data.y >> data.z;
-            material->setColor(data, Material::DIFFUSE);
+            material->setColor(Material::DIFFUSE, data);
         }
 
         // Specular color
         else if (token == "ks") {
             stream >> data.x >> data.y >> data.z;
-            material->setColor(data, Material::SPECULAR);
+            material->setColor(Material::SPECULAR, data);
         }
 
         // Transparency color
         else if (token == "tf") {
             stream >> data.x >> data.y >> data.z;
-            material->setColor(data, Material::TRANSPARENCY);
+            material->setColor(Material::TRANSPARENCY, data);
         }
 
 
@@ -345,25 +345,25 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         // Shininess
 		else if (token == "ns") {
 			stream >> value;
-			material->setValue(value, Material::SHININESS);
+			material->setValue(Material::SHININESS, value);
 		}
 
         // Disolve
 		else if (token == "d") {
 			stream >> value;
-			material->setValue(1.0F - value, Material::TRANSPARENCY);
+			material->setValue(Material::TRANSPARENCY, 1.0F - value);
 		}
 
 		// Transparency
 		else if (token == "tr") {
 			stream >> value;
-			material->setValue(value, Material::TRANSPARENCY);
+			material->setValue(Material::TRANSPARENCY, value);
 		}
 
 		// Refractive index
 		else if (token == "ni") {
 			stream >> value;
-			material->setValue(value, Material::REFRACTIVE_INDEX);
+			material->setValue(Material::REFRACTIVE_INDEX, value);
 		}
 
 
@@ -373,7 +373,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ka") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(relative + token, Material::AMBIENT);
+            material->setTexturePath(Material::AMBIENT, relative + token);
             model_data->textures++;
         }
 
@@ -381,7 +381,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_kd") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(relative + token, Material::DIFFUSE);
+            material->setTexturePath(Material::DIFFUSE, relative + token);
             model_data->textures++;
         }
 
@@ -389,7 +389,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ks") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(relative + token, Material::SPECULAR);
+            material->setTexturePath(Material::SPECULAR, relative + token);
             model_data->textures++;
         }
 
@@ -397,7 +397,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "map_ns") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(relative + token, Material::SHININESS);
+            material->setTexturePath(Material::SHININESS, relative + token);
             model_data->textures++;
         }
 
@@ -405,7 +405,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
 		else if ((token == "map_bump") || (token == "bump") || (token == "kn")) {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(relative + token, Material::NORMAL);
+            material->setTexturePath(Material::NORMAL, relative + token);
             model_data->textures++;
         }
 
@@ -413,7 +413,7 @@ bool OBJLoader::readMTL(const std::string &mtl) {
         else if (token == "disp") {
             stream >> std::ws;
 			std::getline(stream, token);
-            material->setTexturePath(relative + token, Material::DISPLACEMENT);
+            material->setTexturePath(Material::DISPLACEMENT, relative + token);
             model_data->textures++;
         }
 

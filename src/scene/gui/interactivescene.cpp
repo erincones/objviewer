@@ -11,10 +11,10 @@
 #include <cstring>
 
 
-// Static const attributes
+// Private static const attributes
 
 // Available texures
-const std::map<Material::Attribute, std::string> InteractiveScene::available_texture = {
+const std::map<Material::Attribute, std::string> InteractiveScene::AVAILABLE_TEXTURE = {
     {Material::AMBIENT,      "Ambient"},
     {Material::DIFFUSE,      "Diffuse"},
     {Material::SPECULAR,     "Specular"},
@@ -24,7 +24,7 @@ const std::map<Material::Attribute, std::string> InteractiveScene::available_tex
 };
 
 
-// Static attributes
+// Private static attributes
 
 // Repository URL
 char InteractiveScene::repository_url[] = "https://github.com/Rebaya17/objviewer-gcc/";
@@ -491,9 +491,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         Material::Attribute material_attribute = Material::AMBIENT;
         glm::vec3 color = material->getColor(material_attribute);
         if (ImGui::ColorEdit3("Ambient", &color.x)) {
-            material->setColor(color, material_attribute);
+            material->setColor(material_attribute, color);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setColor(color, material_attribute);
+                model->getMaterial(i)->setColor(material_attribute, color);
             }
         }
 
@@ -501,9 +501,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         material_attribute = Material::DIFFUSE;
         color = material->getColor(material_attribute);
         if (ImGui::ColorEdit3("Diffuse", &color.x)) {
-            material->setColor(color, material_attribute);
+            material->setColor(material_attribute, color);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setColor(color, material_attribute);
+                model->getMaterial(i)->setColor(material_attribute, color);
             }
         }
 
@@ -511,9 +511,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         material_attribute = Material::SPECULAR;
         color = material->getColor(material_attribute);
         if (ImGui::ColorEdit3("Specular", &color.x)) {
-            material->setColor(color, material_attribute);
+            material->setColor(material_attribute, color);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setColor(color, material_attribute);
+                model->getMaterial(i)->setColor(material_attribute, color);
             }
         }
 
@@ -521,9 +521,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         material_attribute = Material::SHININESS;
         float value = material->getValue(material_attribute);
         if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(value, material_attribute);
+            material->setValue(material_attribute, value);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(value, material_attribute);
+                model->getMaterial(i)->setValue(material_attribute, value);
             }
         }
 
@@ -531,9 +531,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         material_attribute = Material::ROUGHNESS;
         value = material->getValue(material_attribute);
         if (ImGui::DragFloat("Roughness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(value, material_attribute);
+            material->setValue(material_attribute, value);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(value, material_attribute);
+                model->getMaterial(i)->setValue(material_attribute, value);
             }
         }
 
@@ -541,9 +541,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         material_attribute = Material::METALNESS;
         value = material->getValue(material_attribute);
         if (ImGui::DragFloat("Metalness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(value, material_attribute);
+            material->setValue(material_attribute, value);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(value, material_attribute);
+                model->getMaterial(i)->setValue(material_attribute, value);
             }
         }
 
@@ -551,9 +551,9 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         material_attribute = Material::DISPLACEMENT;
         value = material->getValue(material_attribute);
         if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(value, material_attribute);
+            material->setValue(material_attribute, value);
             for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(value, material_attribute);
+                model->getMaterial(i)->setValue(material_attribute, value);
             }
         }
 
@@ -578,65 +578,72 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
                 material_attribute = Material::AMBIENT;
                 color = material->getColor(material_attribute);
                 if (ImGui::ColorEdit3("Ambient", &color.x)) {
-                    material->setColor(color, material_attribute);
+                    material->setColor(material_attribute, color);
                 }
 
                 // Diffuse color
                 material_attribute = Material::DIFFUSE;
                 color = material->getColor(material_attribute);
                 if (ImGui::ColorEdit3("Diffuse", &color.x)) {
-                    material->setColor(color, material_attribute);
+                    material->setColor(material_attribute, color);
                 }
 
                 // Specular color
                 material_attribute = Material::SPECULAR;
                 color = material->getColor(material_attribute);
                 if (ImGui::ColorEdit3("Specular", &color.x)) {
-                    material->setColor(color, material_attribute);
+                    material->setColor(material_attribute, color);
                 }
 
                 // Shininess value
                 material_attribute = Material::SHININESS;
                 value = material->getValue(material_attribute);
                 if (ImGui::DragFloat("Shininess", &value)) {
-                    material->setValue(value, material_attribute);
+                    material->setValue(material_attribute, value);
                 }
 
                 // Roughness value
                 material_attribute = Material::ROUGHNESS;
                 value = material->getValue(material_attribute);
                 if (ImGui::DragFloat("Roughness", &value)) {
-                    material->setValue(value, material_attribute);
+                    material->setValue(material_attribute, value);
                 }
 
                 // Metalness value
                 material_attribute = Material::METALNESS;
                 value = material->getValue(material_attribute);
                 if (ImGui::DragFloat("Metalness", &value)) {
-                    material->setValue(value, material_attribute);
+                    material->setValue(material_attribute, value);
                 }
 
                 // Parallax value
                 material_attribute = Material::DISPLACEMENT;
                 value = material->getValue(material_attribute);
                 if (ImGui::DragFloat("Parallax", &value)) {
-                    material->setValue(value, material_attribute);
+                    material->setValue(material_attribute, value);
                 }
 
                 // Textures node
                 if (ImGui::TreeNode("Textures")) {
                     // For each texture
-                    for (const std::pair<const Material::Attribute, const std::string> &texture : InteractiveScene::available_texture) {
+                    for (const std::pair<const Material::Attribute, const std::string> &texture : InteractiveScene::AVAILABLE_TEXTURE) {
                         // Get the texture ID
                         id = std::to_string(texture.first);
                         if (ImGui::TreeNode(id.c_str(), texture.second.c_str())) {
                             // Texture path
                             str =  material->getTexturePath(texture.first);
                             if (ImGui::InputText("Path", &str, ImGuiInputTextFlags_EnterReturnsTrue)) {
-                                material->setTexturePath(str, texture.first);
+                                material->setTexturePath(texture.first, str);
+                            }
+
+                            // Enabled status
+                            enabled = material->isTextureEnabled(texture.first);
+                            if (ImGui::Checkbox("Enabled", &enabled)) {
+                                material->setTextureEnabled(texture.first, enabled);
                             }
 
                             // Reload buttons
+                            ImGui::SameLine();
                             if (ImGui::Button("Reload texture")) {
                                 material->reloadTexture(texture.first);
                             }

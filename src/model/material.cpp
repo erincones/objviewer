@@ -7,16 +7,23 @@
 #include <iostream>
 
 
+// Private static const attributes
+
+// Texture attributes
+const Material::Attribute Material::TEXTURE_ATTRIBUTE[] = {
+    Material::AMBIENT,
+    Material::DIFFUSE,
+    Material::SPECULAR,
+    Material::SHININESS,
+    Material::NORMAL,
+    Material::DISPLACEMENT
+};
+
+
 // Private static attributes
 
-// Default white texture
-GLuint Material::white_tex = GL_FALSE;
-
-// Default black texture
-GLuint Material::black_tex = GL_FALSE;
-
-// Default blue texture
-GLuint Material::blue_tex = GL_FALSE;
+// Default texture
+GLuint Material::default_texture[3] = {GL_FALSE, GL_FALSE, GL_FALSE};
 
 
 // Private static methods
@@ -46,9 +53,9 @@ GLuint Material::createDefaultTexture(const glm::vec3 &color) {
 }
 
 // Bind texture
-void Material::bindTexture(const GLenum &index, const GLuint &texture, const GLuint &default_texture) {
+void Material::bindTexture(const GLenum &index, const GLuint &texture) {
     glActiveTexture(GL_TEXTURE0 + index);
-    glBindTexture(GL_TEXTURE_2D, texture != GL_FALSE ? texture : default_texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 }
 
 
@@ -152,27 +159,16 @@ Material::Material(const std::string &name) :
     name(name),
 
     // Colors
-    ambient_color(0.0F),
-    diffuse_color(1.0F),
-    specular_color(0.125F),
-    transparency_color(1.0F),
+    color{glm::vec3(0.0F), glm::vec3(1.0F), glm::vec3(0.125F), glm::vec3(1.0F)},
 
     // Values
-    shininess(10.0F),
-    roughness(0.3F),
-    metalness(0.1F),
-    transparency(0.0F),
-    displacement(0.05),
-    refractive_index(1.0F),
+    value{10.0F, 0.3F, 0.1F, 0.0F, 0.05, 1.0F},
 
     // Textures
-    ambient_tex(GL_FALSE),
-    diffuse_tex(GL_FALSE),
-    specular_tex(GL_FALSE),
-    shininess_tex(GL_FALSE),
-    normal_tex(GL_FALSE),
-    displacement_tex(GL_FALSE),
-    cube_map_tex(GL_FALSE) {}
+    texture{GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE},
+    
+    // Textures enabled status
+    texture_enabled{true, true, true, true, true, true, true} {}
 
 
 // Getters
@@ -186,10 +182,10 @@ std::string Material::getName() const {
 glm::vec3 Material::getColor(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return color by attribute
-        case Material::AMBIENT:      return ambient_color;
-        case Material::DIFFUSE:      return diffuse_color;
-        case Material::SPECULAR:     return specular_color;
-        case Material::TRANSPARENCY: return transparency_color;
+        case Material::AMBIENT:      return color[0];
+        case Material::DIFFUSE:      return color[1];
+        case Material::SPECULAR:     return color[2];
+        case Material::TRANSPARENCY: return color[3];
 
         // Invalid attribute
         default:
@@ -202,12 +198,12 @@ glm::vec3 Material::getColor(const Material::Attribute &attrib) const {
 float Material::getValue(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return value by attribute
-        case Material::SHININESS:        return shininess;
-        case Material::ROUGHNESS:        return roughness;
-        case Material::METALNESS:        return metalness;
-        case Material::TRANSPARENCY:     return transparency;
-        case Material::DISPLACEMENT:     return displacement;
-        case Material::REFRACTIVE_INDEX: return refractive_index;
+        case Material::SHININESS:        return value[0];
+        case Material::ROUGHNESS:        return value[1];
+        case Material::METALNESS:        return value[2];
+        case Material::TRANSPARENCY:     return value[3];
+        case Material::DISPLACEMENT:     return value[4];
+        case Material::REFRACTIVE_INDEX: return value[5];
 
         // Invalid attribute
         default:
@@ -220,13 +216,21 @@ float Material::getValue(const Material::Attribute &attrib) const {
 GLuint Material::getTexture(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return texture by attribute
-        case Material::AMBIENT:      return ambient_tex      == GL_FALSE ? Material::white_tex : ambient_tex;
-        case Material::DIFFUSE:      return diffuse_tex      == GL_FALSE ? Material::white_tex : diffuse_tex;
-        case Material::SPECULAR:     return specular_tex     == GL_FALSE ? Material::white_tex : specular_tex;
-        case Material::SHININESS:    return shininess_tex    == GL_FALSE ? Material::white_tex : shininess_tex;
-        case Material::NORMAL:       return normal_tex       == GL_FALSE ? Material::blue_tex  : normal_tex;
-        case Material::DISPLACEMENT: return displacement_tex == GL_FALSE ? Material::black_tex : displacement_tex;
-        case Material::CUBE_MAP:     return cube_map_tex;
+        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[0] : texture[0];
+        case Material::DIFFUSE:      return texture[1] == GL_FALSE ? Material::default_texture[0] : texture[1];
+        case Material::SPECULAR:     return texture[2] == GL_FALSE ? Material::default_texture[0] : texture[2];
+        case Material::SHININESS:    return texture[3] == GL_FALSE ? Material::default_texture[0] : texture[3];
+        case Material::NORMAL:       return texture[4] == GL_FALSE ? Material::default_texture[1] : texture[4];
+        case Material::DISPLACEMENT: return texture[5] == GL_FALSE ? Material::default_texture[2] : texture[5];
+
+        // Cubemap
+        case Material::CUBE_MAP:
+        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_LEFT:
+        case Material::CUBE_MAP_TOP:
+        case Material::CUBE_MAP_BOTTOM:
+        case Material::CUBE_MAP_FRONT:
+        case Material::CUBE_MAP_BACK: return texture[6];
 
         // Invalid attribute
         default:
@@ -235,24 +239,51 @@ GLuint Material::getTexture(const Material::Attribute &attrib) const {
     }
 }
 
+// Get the texture enabled status
+bool Material::isTextureEnabled(const Material::Attribute &attrib) const {
+    switch (attrib) {
+        // Return texture path by attribute
+        case Material::AMBIENT:         return texture_enabled[0];
+        case Material::DIFFUSE:         return texture_enabled[1];
+        case Material::SPECULAR:        return texture_enabled[2];
+        case Material::SHININESS:       return texture_enabled[3];
+        case Material::NORMAL:          return texture_enabled[4];
+        case Material::DISPLACEMENT:    return texture_enabled[5];
+
+        // Cubemap
+        case Material::CUBE_MAP:
+        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_LEFT:
+        case Material::CUBE_MAP_TOP:
+        case Material::CUBE_MAP_BOTTOM:
+        case Material::CUBE_MAP_FRONT:
+        case Material::CUBE_MAP_BACK: return texture_enabled[6];
+
+        // Invalid attribute
+        default:
+            std::cerr << "error: invalid attribute `" << attrib << "'" << std::endl;
+            return false;
+    }
+}
+
 // Get the texture path of the given attribute
 std::string Material::getTexturePath(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return texture path by attribute
-        case Material::AMBIENT:         return ambient_tex_path;
-        case Material::DIFFUSE:         return diffuse_tex_path;
-        case Material::SPECULAR:        return specular_tex_path;
-        case Material::SHININESS:       return shininess_tex_path;
-        case Material::NORMAL:          return normal_tex_path;
-        case Material::DISPLACEMENT:    return displacement_tex_path;
+        case Material::AMBIENT:         return texture_path[0];
+        case Material::DIFFUSE:         return texture_path[1];
+        case Material::SPECULAR:        return texture_path[2];
+        case Material::SHININESS:       return texture_path[3];
+        case Material::NORMAL:          return texture_path[4];
+        case Material::DISPLACEMENT:    return texture_path[5];
 
         // Cube map texture paths
-        case Material::CUBE_MAP_RIGHT:  return cube_map_tex_path[0];
-        case Material::CUBE_MAP_LEFT:   return cube_map_tex_path[1];
-        case Material::CUBE_MAP_TOP:    return cube_map_tex_path[2];
-        case Material::CUBE_MAP_BOTTOM: return cube_map_tex_path[3];
-        case Material::CUBE_MAP_FRONT:  return cube_map_tex_path[4];
-        case Material::CUBE_MAP_BACK:   return cube_map_tex_path[5];
+        case Material::CUBE_MAP_RIGHT:  return texture_path[ 6];
+        case Material::CUBE_MAP_LEFT:   return texture_path[ 7];
+        case Material::CUBE_MAP_TOP:    return texture_path[ 8];
+        case Material::CUBE_MAP_BOTTOM: return texture_path[ 9];
+        case Material::CUBE_MAP_FRONT:  return texture_path[10];
+        case Material::CUBE_MAP_BACK:   return texture_path[11];
 
         // Invalid attribute
         default:
@@ -270,13 +301,13 @@ void Material::setName(const std::string &new_name) {
 }
 
 // Set the color of the given attribute
-void Material::setColor(const glm::vec3 &color, const Material::Attribute &attrib) {
+void Material::setColor(const Material::Attribute &attrib, const glm::vec3 &new_color) {
     switch (attrib) {
         // Set color by attribute
-        case Material::AMBIENT:      ambient_color      = color; return;
-        case Material::DIFFUSE:      diffuse_color      = color; return;
-        case Material::SPECULAR:     specular_color     = color; return;
-        case Material::TRANSPARENCY: transparency_color = color; return;
+        case Material::AMBIENT:      color[0] = new_color; return;
+        case Material::DIFFUSE:      color[1] = new_color; return;
+        case Material::SPECULAR:     color[2] = new_color; return;
+        case Material::TRANSPARENCY: color[3] = new_color; return;
 
         // Invalid attribute
         default:
@@ -285,15 +316,41 @@ void Material::setColor(const glm::vec3 &color, const Material::Attribute &attri
 }
 
 // Set the value of the given attribute
-void Material::setValue(const float &value, const Material::Attribute &attrib) {
+void Material::setValue(const Material::Attribute &attrib, const float &new_value) {
     switch (attrib) {
         // Set value by attribute
-        case Material::SHININESS:        shininess        = value; return;
-        case Material::ROUGHNESS:        roughness        = value; return;
-        case Material::METALNESS:        metalness        = value; return;
-        case Material::TRANSPARENCY:     transparency     = value; return;
-        case Material::DISPLACEMENT:     displacement     = value; return;
-        case Material::REFRACTIVE_INDEX: refractive_index = value; return;
+        case Material::SHININESS:        value[0] = new_value; return;
+        case Material::ROUGHNESS:        value[1] = new_value; return;
+        case Material::METALNESS:        value[2] = new_value; return;
+        case Material::TRANSPARENCY:     value[3] = new_value; return;
+        case Material::DISPLACEMENT:     value[4] = new_value; return;
+        case Material::REFRACTIVE_INDEX: value[5] = new_value; return;
+
+        // Invalid attribute
+        default:
+            std::cerr << "error: invalid attribute `" << attrib << "'" << std::endl;
+    }
+}
+
+// Get the texture enabled status
+void Material::setTextureEnabled(const Material::Attribute &attrib, const bool &status) {
+    switch (attrib) {
+        // Return texture path by attribute
+        case Material::AMBIENT:         texture_enabled[0] = status; return;
+        case Material::DIFFUSE:         texture_enabled[1] = status; return;
+        case Material::SPECULAR:        texture_enabled[2] = status; return;
+        case Material::SHININESS:       texture_enabled[3] = status; return;
+        case Material::NORMAL:          texture_enabled[4] = status; return;
+        case Material::DISPLACEMENT:    texture_enabled[5] = status; return;
+
+        // Cubemap
+        case Material::CUBE_MAP:
+        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_LEFT:
+        case Material::CUBE_MAP_TOP:
+        case Material::CUBE_MAP_BOTTOM:
+        case Material::CUBE_MAP_FRONT:
+        case Material::CUBE_MAP_BACK: texture_enabled[6] = status; return;
 
         // Invalid attribute
         default:
@@ -302,30 +359,30 @@ void Material::setValue(const float &value, const Material::Attribute &attrib) {
 }
 
 // Set the texture path of the given attribute
-void Material::setTexturePath(const std::string &path, const Material::Attribute &attrib) {
+void Material::setTexturePath(const Material::Attribute &attrib, const std::string &path) {
     switch (attrib) {
         // Set texture path by attribute
-        case Material::AMBIENT:      ambient_tex_path      = path; break;
-        case Material::DIFFUSE:      diffuse_tex_path      = path; break;
-        case Material::SPECULAR:     specular_tex_path     = path; break;
-        case Material::SHININESS:    shininess_tex_path    = path; break;
-        case Material::NORMAL:       normal_tex_path       = path; break;
-        case Material::DISPLACEMENT: displacement_tex_path = path; break;
+        case Material::AMBIENT:      texture_path[0] = path; break;
+        case Material::DIFFUSE:      texture_path[1] = path; break;
+        case Material::SPECULAR:     texture_path[2] = path; break;
+        case Material::SHININESS:    texture_path[3] = path; break;
+        case Material::NORMAL:       texture_path[4] = path; break;
+        case Material::DISPLACEMENT: texture_path[5] = path; break;
 
         // Cube map texture paths
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
-        case Material::CUBE_MAP_LEFT:  
-        case Material::CUBE_MAP_TOP:   
+        case Material::CUBE_MAP_RIGHT:
+        case Material::CUBE_MAP_LEFT:
+        case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
-        case Material::CUBE_MAP_FRONT: 
+        case Material::CUBE_MAP_FRONT:
         case Material::CUBE_MAP_BACK:
             // Print warning message
             std::cout << "warning: using the same texture for all cube map sides, use `Material::setCubeMapTexturePath(const std::string (&path)[6])' to set each cube map path separately" << std::endl;
             
             // Set the cube map texture paths
-            for (int i = 1; i < 6; i++) {
-                cube_map_tex_path[i] = path;
+            for (int i = 6; i < 12; i++) {
+                texture_path[i] = path;
             }
             break;  
 
@@ -342,8 +399,8 @@ void Material::setTexturePath(const std::string &path, const Material::Attribute
 // Set the cube map texture path
 void Material::setCubeMapTexturePath(const std::string (&path)[6]) {
     // Set the texture paths
-    for (int i = 1; i < 6; i++) {
-        cube_map_tex_path[i] = path[i];
+    for (int i = 6, j = 1; j < 6; j++) {
+        texture_path[i] = path[j];
     }
 
     // Reload texture
@@ -355,46 +412,18 @@ void Material::setCubeMapTexturePath(const std::string (&path)[6]) {
 
 // Reload textures
 void Material::reloadTexture(const Material::Attribute &attrib) {
-    // Ambient texture
-    if ((attrib & Material::AMBIENT) != 0U) {
-        glDeleteTextures(1, &ambient_tex);
-        ambient_tex = Material::load2DTexture(ambient_tex_path);
-    }
-
-    // Diffuse texture
-    if ((attrib & Material::DIFFUSE) != 0U) {
-        glDeleteTextures(1, &diffuse_tex);
-        diffuse_tex = Material::load2DTexture(diffuse_tex_path);
-    }
-
-    // Specular texture
-    if ((attrib & Material::SPECULAR) != 0U) {
-        glDeleteTextures(1, &specular_tex);
-        specular_tex = Material::load2DTexture(specular_tex_path);
-    }
-
-    // Shininess texture
-    if ((attrib & Material::SHININESS) != 0U) {
-        glDeleteTextures(1, &shininess_tex);
-        shininess_tex = Material::load2DTexture(shininess_tex_path);
-    }
-
-    // Normal texture
-    if ((attrib & Material::NORMAL) != 0U) {
-        glDeleteTextures(1, &normal_tex);
-        normal_tex = Material::load2DTexture(normal_tex_path);
-    }
-
-    // Displacement texture
-    if ((attrib & Material::DISPLACEMENT) != 0U) {
-        glDeleteTextures(1, &displacement_tex);
-        displacement_tex = Material::load2DTexture(displacement_tex_path);
+    // Reload textures
+    for (int i = 0; i < 6; i++) {
+        if ((attrib & Material::TEXTURE_ATTRIBUTE[i]) != 0U) {
+            glDeleteTextures(1, &texture[i]);
+            texture[i] = Material::load2DTexture(texture_path[i]);
+        }
     }
 
     // Cube map texture
     if ((attrib & Material::CUBE_MAP) != 0U) {
-        glDeleteTextures(1, &cube_map_tex);
-        cube_map_tex = Material::loadCubeMapTexture(cube_map_tex_path);
+        glDeleteTextures(1, &texture[6]);
+        texture[6] = Material::loadCubeMapTexture({texture_path[6], texture_path[7], texture_path[8], texture_path[9], texture_path[10], texture_path[11]});
     }
 }
 
@@ -409,36 +438,33 @@ void Material::bind(GLSLProgram *const program) const {
     program->use();
 
     // Set color uniforms
-    program->setUniform("ambient_color",      ambient_color);
-    program->setUniform("diffuse_color",      diffuse_color);
-    program->setUniform("specular_color",     specular_color);
-    program->setUniform("transparency_color", transparency_color);
+    program->setUniform("ambient_color",      color[0]);
+    program->setUniform("diffuse_color",      color[1]);
+    program->setUniform("specular_color",     color[2]);
+    program->setUniform("transparency_color", color[3]);
 
     // Set value uniforms
-    program->setUniform("shininess",        shininess);
-    program->setUniform("roughness",        roughness);
-    program->setUniform("metalness",        metalness);
-    program->setUniform("transparency",     transparency);
-    program->setUniform("displacement",     displacement);
-    program->setUniform("refractive_index", refractive_index);
+    program->setUniform("shininess",        value[0]);
+    program->setUniform("roughness",        value[1]);
+    program->setUniform("metalness",        value[2]);
+    program->setUniform("transparency",     value[3]);
+    program->setUniform("displacement",     value[4]);
+    program->setUniform("refractive_index", value[5]);
 
     // Set texture uniforms
-    program->setUniform("ambient_tex",      ambient_tex);
-    program->setUniform("diffuse_tex",      diffuse_tex);
-    program->setUniform("specular_tex",     specular_tex);
-    program->setUniform("shininess_tex",    shininess_tex);
-    program->setUniform("normal_tex",       normal_tex);
-    program->setUniform("displacement_tex", displacement_tex);
-    program->setUniform("cube_map_tex",     cube_map_tex);
+    program->setUniform("ambient_tex",      texture[0]);
+    program->setUniform("diffuse_tex",      texture[1]);
+    program->setUniform("specular_tex",     texture[2]);
+    program->setUniform("shininess_tex",    texture[3]);
+    program->setUniform("normal_tex",       texture[4]);
+    program->setUniform("displacement_tex", texture[5]);
+    program->setUniform("cube_map_tex",     texture[6]);
 
     // Bind textures
-    Material::bindTexture(0U, ambient_tex,      Material::white_tex);
-    Material::bindTexture(1U, diffuse_tex,      Material::white_tex);
-    Material::bindTexture(2U, specular_tex,     Material::white_tex);
-    Material::bindTexture(3U, shininess_tex,    Material::white_tex);
-    Material::bindTexture(4U, normal_tex,       Material::blue_tex);
-    Material::bindTexture(5U, displacement_tex, Material::black_tex);
-    Material::bindTexture(6U, cube_map_tex,     GL_FALSE);
+    for (GLuint i = 0; i < 6U; i++) {
+        Material::bindTexture(i, (texture[i] == GL_FALSE) || !texture_enabled[i] ? Material::default_texture[i < 4U ? 0U : i - 3U] : texture[i]);
+    }
+    Material::bindTexture(6U, texture[6]);
 }
 
 
@@ -447,13 +473,7 @@ void Material::bind(GLSLProgram *const program) const {
 // Material destructor
 Material::~Material() {
     // Delete all textures
-    glDeleteTextures(1, &ambient_tex);    
-    glDeleteTextures(1, &diffuse_tex);    
-    glDeleteTextures(1, &specular_tex);    
-    glDeleteTextures(1, &shininess_tex);    
-    glDeleteTextures(1, &normal_tex);    
-    glDeleteTextures(1, &displacement_tex);    
-    glDeleteTextures(1, &cube_map_tex);
+    glDeleteTextures(6, &texture[0]);
 }
 
 
@@ -462,30 +482,28 @@ Material::~Material() {
 // Create the default textures
 void Material::createDefaultTextures() {
     // Create the white texture
-    if (Material::white_tex == GL_FALSE) {
-        Material::white_tex = Material::createDefaultTexture(glm::vec3(1.0F));
-    }
-
-    // Create the black texture
-    if (Material::black_tex == GL_FALSE) {
-        Material::black_tex = Material::createDefaultTexture(glm::vec3(0.0F));
+    if (Material::default_texture[0] == GL_FALSE) {
+        Material::default_texture[0] = Material::createDefaultTexture(glm::vec3(1.0F));
     }
 
     // Create the blue texture
-    if (Material::blue_tex == GL_FALSE) {
-        Material::blue_tex = Material::createDefaultTexture(glm::vec3(0.0F, 0.0F, 1.0F));
+    if (Material::default_texture[1] == GL_FALSE) {
+        Material::default_texture[1] = Material::createDefaultTexture(glm::vec3(0.0F, 0.0F, 1.0F));
+    }
+
+    // Create the black texture
+    if (Material::default_texture[2] == GL_FALSE) {
+        Material::default_texture[2] = Material::createDefaultTexture(glm::vec3(0.0F));
     }
 }
 
 // Delete the default textures
 void Material::deleteDefaultTextures() {
     // Delete textures
-    glDeleteTextures(1, &Material::white_tex);
-    glDeleteTextures(1, &Material::black_tex);
-    glDeleteTextures(1, &Material::blue_tex);
+    glDeleteTextures(3, &Material::default_texture[0]);
 
     // Reset textures
-    Material::white_tex = GL_FALSE;
-    Material::black_tex = GL_FALSE;
-    Material::blue_tex = GL_FALSE;
+    Material::default_texture[0] = GL_FALSE;
+    Material::default_texture[1] = GL_FALSE;
+    Material::default_texture[2] = GL_FALSE;
 }

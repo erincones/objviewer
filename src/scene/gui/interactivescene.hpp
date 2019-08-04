@@ -51,7 +51,7 @@ class InteractiveScene : public Scene {
         // Static const attributes
 
         /** Available texures */
-        static const std::map<Material::Attribute, std::string> available_texture;
+        static const std::map<Material::Attribute, std::string> AVAILABLE_TEXTURE;
 
 
         // Static attributes
