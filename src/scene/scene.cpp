@@ -29,7 +29,7 @@ const GLubyte *Scene::glsl_version = nullptr;
 
 
 // Default program
-GLSLProgram *Scene::default_program = nullptr;
+std::pair<GLSLProgram *, std::string> Scene::default_program = std::pair<GLSLProgram *, std::string>(nullptr, "NULL (Defaut)");
 
 
 // Static methods
@@ -68,8 +68,8 @@ void Scene::drawScene() {
         }
 
         // Check the program status
-        std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(model_data.second.second);
-        GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second);
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
+        GLSLProgram *const program = (result == program_stock.end() ? Scene::default_program : result->second).first;
 
         // Bind the camera
         active_camera->bind(program);
@@ -220,8 +220,14 @@ Model *Scene::getModel(const std::size_t &id) const {
 
 // Get program by ID
 GLSLProgram *Scene::getProgram(const std::size_t &id) const {
-    std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(id);
-    return result == program_stock.end() ? nullptr : result->second;
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
+    return result == program_stock.end() ? nullptr : result->second.first;
+}
+
+// Get program description by ID
+std::string Scene::getProgramDescription(const std::size_t &id) const {
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
+    return result == program_stock.end() ? "NOT_FOUND" : result->second.second;
 }
 
 
@@ -269,21 +275,26 @@ std::size_t Scene::addModel(const std::string &path, const std::size_t &program_
 
 
 // Add empty GLSL program
-std::size_t Scene::addProgram() {
-    program_stock[Scene::element_id] = new GLSLProgram();
+std::size_t Scene::addProgram(const std::string &desc) {
+    program_stock[Scene::element_id] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), desc);
     return Scene::element_id++;
 }
 
 // Add GLSL program without geometry shader
-std::size_t Scene::addProgram(const std::string &vert, const std::string &frag) {
-    program_stock[Scene::element_id] = new GLSLProgram(vert, frag);
+std::size_t Scene::addProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
+    program_stock[Scene::element_id] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(vert, frag), desc);
     return Scene::element_id++;
 }
 
 // Add GLSL program
-std::size_t Scene::addProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
-    program_stock[Scene::element_id] = new GLSLProgram(vert, geom, frag);
+std::size_t Scene::addProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag) {
+    program_stock[Scene::element_id] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(vert, geom, frag), desc);
     return Scene::element_id++;
+}
+
+// Set program description
+bool Scene::setProgramDescription(const std::string &desc, const std::size_t &id) {
+
 }
 
 
@@ -326,7 +337,7 @@ void Scene::mainLoop() {
     }
 
     // Check if the default program is not null
-    if (Scene::default_program == nullptr) {
+    if (Scene::default_program.first == nullptr) {
         std::cerr << "warning: the default program has not been set" << std::endl;
     }
 
@@ -396,7 +407,7 @@ bool Scene::removeModel(const std::size_t &id) {
 // Remove program
 bool Scene::removeProgram(const std::size_t &id) {
     // Search the program
-    std::map<std::size_t, GLSLProgram *>::const_iterator result = program_stock.find(id);
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
 
     // Return false if the program does not exists
     if (result == program_stock.end()) {
@@ -404,7 +415,7 @@ bool Scene::removeProgram(const std::size_t &id) {
     }
 
     // Delete the program
-    delete result->second;
+    delete result->second.first;
     program_stock.erase(result);
 
     return true;
@@ -426,13 +437,13 @@ Scene::~Scene() {
     }
 
     // Delete programs
-    for (const std::pair<const std::size_t, const GLSLProgram *const> &program_data : program_stock) {
-        delete program_data.second;
+    for (const std::pair<const std::size_t, std::pair<const GLSLProgram *const , const std::string> > &program_data : program_stock) {
+        delete program_data.second.first;
     }
 
     // Delete the default program
-    if (Scene::default_program != nullptr) {
-        delete Scene::default_program;
+    if (Scene::default_program.first != nullptr) {
+        delete Scene::default_program.first;
     }
 
 
@@ -486,30 +497,54 @@ const GLubyte *Scene::getGLSLVersion() {
 
 // Get the default program
 GLSLProgram *Scene::getDefaultProgram() {
-    return Scene::default_program;
+    return Scene::default_program.first;
+}
+
+// Get the default program
+std::string Scene::getDefaultProgramDescription() {
+    return Scene::default_program.second;
 }
 
 
 // Static setters
 
 // Set the default program without geometry shader
-void Scene::setDefaultProgram(const std::string &vert, const std::string &frag) {
+void Scene::setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
     // Delete previous default program
-    if (Scene::default_program != nullptr) {
-        delete Scene::default_program;
+    if (Scene::default_program.first != nullptr) {
+        delete Scene::default_program.first;
     }
 
     // Create the new default program
-    Scene::default_program = new GLSLProgram(vert, frag);
+    Scene::default_program.first = new GLSLProgram(vert, frag);
+    Scene::default_program.second = desc + " (Default)";
 }
 
 // Set the default program
-void Scene::setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag) {
+void Scene::setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag) {
     // Delete previous default program
-    if (Scene::default_program != nullptr) {
-        delete Scene::default_program;
+    if (Scene::default_program.first != nullptr) {
+        delete Scene::default_program.first;
     }
 
     // Create the new default program
-    Scene::default_program = new GLSLProgram(vert, geom, frag);
+    Scene::default_program.first = new GLSLProgram(vert, geom, frag);
+    Scene::default_program.second = desc + " (Default)";
+}
+
+// Se the default program description */
+void Scene::setDefaultProgramDescription(const std::string &desc) {
+    Scene::default_program.second = desc + " (Default)";
+}
+
+
+// Static methods
+
+// Remove the default program
+void Scene::removeDefaultProgram() {
+    if (Scene::default_program.first != nullptr) {
+        delete Scene::default_program.first;
+        Scene::default_program.first = nullptr;
+        Scene::default_program.second = "NULL (Defaut)";
+    }
 }

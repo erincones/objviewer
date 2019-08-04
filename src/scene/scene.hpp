@@ -48,7 +48,7 @@ class Scene {
         std::map<std::size_t, std::pair<Model *, std::size_t> > model_stock;
 
         /** Program stock */
-        std::map<std::size_t, GLSLProgram *> program_stock;
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> > program_stock;
 
 
         /** Thousands of frames */
@@ -99,7 +99,7 @@ class Scene {
 
 
         /** Default program */
-        static GLSLProgram *default_program;
+        static std::pair<GLSLProgram *, std::string> default_program;
 
 
         // Static methods
@@ -144,6 +144,9 @@ class Scene {
         /** Get program by ID */
         GLSLProgram *getProgram(const std::size_t &id) const;
 
+        /** Get program description by ID */
+        std::string getProgramDescription(const std::size_t &id) const;
+
 
         /** Get frames */
         double getFrames() const;
@@ -166,13 +169,16 @@ class Scene {
 
 
         /** Add empty GLSL program */
-        std::size_t addProgram();
+        std::size_t addProgram(const std::string &desc);
 
         /** Add GLSL program without geometry shader */
-        std::size_t addProgram(const std::string &vert, const std::string &frag);
+        std::size_t addProgram(const std::string &desc, const std::string &vert, const std::string &frag);
 
         /** Add GLSL program */
-        std::size_t addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        std::size_t addProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag);
+
+        /** Set program description */
+        bool setProgramDescription(const std::string &desc, const std::size_t &id);
 
 
         /** Set title */
@@ -222,14 +228,26 @@ class Scene {
         /** Get the default program */
         static GLSLProgram *getDefaultProgram();
 
+        /** Get the default program */
+        static std::string getDefaultProgramDescription();
+
 
         // Static setters
 
         /** Set the default program without geometry shader */
-        static void setDefaultProgram(const std::string &vert, const std::string &frag);
+        static void setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &frag);
 
         /** Set the default program */
-        static void setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        static void setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag);
+
+        /** Se the default program description */
+        static void setDefaultProgramDescription(const std::string &desc);
+    
+
+        // Static methods
+
+        /** Remove the default program */
+        static void removeDefaultProgram();
 };
 
 #endif // __SCENE_HPP_
