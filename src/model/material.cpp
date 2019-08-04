@@ -220,12 +220,12 @@ float Material::getValue(const Material::Attribute &attrib) const {
 GLuint Material::getTexture(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return texture by attribute
-        case Material::AMBIENT:      return ambient_tex;
-        case Material::DIFFUSE:      return diffuse_tex;
-        case Material::SPECULAR:     return specular_tex;
-        case Material::SHININESS:    return shininess_tex;
-        case Material::NORMAL:       return normal_tex;
-        case Material::DISPLACEMENT: return displacement_tex;
+        case Material::AMBIENT:      return ambient_tex      == GL_FALSE ? Material::white_tex : ambient_tex;
+        case Material::DIFFUSE:      return diffuse_tex      == GL_FALSE ? Material::white_tex : diffuse_tex;
+        case Material::SPECULAR:     return specular_tex     == GL_FALSE ? Material::white_tex : specular_tex;
+        case Material::SHININESS:    return shininess_tex    == GL_FALSE ? Material::white_tex : shininess_tex;
+        case Material::NORMAL:       return normal_tex       == GL_FALSE ? Material::blue_tex  : normal_tex;
+        case Material::DISPLACEMENT: return displacement_tex == GL_FALSE ? Material::black_tex : displacement_tex;
         case Material::CUBE_MAP:     return cube_map_tex;
 
         // Invalid attribute
@@ -462,18 +462,18 @@ Material::~Material() {
 // Create the default textures
 void Material::createDefaultTextures() {
     // Create the white texture
-    if (Material::white_tex != GL_FALSE) {
+    if (Material::white_tex == GL_FALSE) {
         Material::white_tex = Material::createDefaultTexture(glm::vec3(1.0F));
     }
 
     // Create the black texture
-    if (Material::black_tex != GL_FALSE) {
+    if (Material::black_tex == GL_FALSE) {
         Material::black_tex = Material::createDefaultTexture(glm::vec3(0.0F));
     }
 
     // Create the blue texture
-    if (Material::blue_tex != GL_FALSE) {
-        Material::blue_tex = Material::createDefaultTexture(glm::vec3(0.0F, 1.0F, 0.0F));
+    if (Material::blue_tex == GL_FALSE) {
+        Material::blue_tex = Material::createDefaultTexture(glm::vec3(0.0F, 0.0F, 1.0F));
     }
 }
 
