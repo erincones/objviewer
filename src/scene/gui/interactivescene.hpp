@@ -27,9 +27,6 @@ class InteractiveScene : public Scene {
 
         // Methods
 
-        /** Draw the scene */
-        void drawScene();
-
         /** Draw the GUI */
         void drawGUI();
 
@@ -42,10 +39,19 @@ class InteractiveScene : public Scene {
         bool cameraWidget(Camera *const camera, const std::size_t &id = 0U);
 
         /** Draw the model widget */
-        bool modelWidget(std::pair<Model *const, std::size_t> &model_data, const std::size_t &id = 0U);
+        bool modelWidget(std::pair<Model *, std::size_t> &model_data);
 
         /** Draw the program widget */
-        bool programWidget(GLSLProgram *const program, const std::size_t &id = 0U);
+        bool programWidget(std::pair<GLSLProgram *, std::string> &program_data, const std::size_t &id);
+
+        /** Draw a program combo item */
+        void programComboItem(std::pair<Model *, std::size_t> &model_data, const std::size_t &program);
+
+
+        // Static const attributes
+
+        /** Available texures */
+        static const std::map<Material::Attribute, std::string> available_texture;
 
 
         // Static attributes
