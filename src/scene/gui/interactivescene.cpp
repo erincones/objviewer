@@ -477,89 +477,164 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Could not open the material file");
         }
 
-        // Global material
-        ImGui::Spacing();
-        ImGui::BulletText("Global");
-        ImGui::HelpMarker("Chages will be applied to all materials");
-        ImGui::Indent();
-
-        // Get the material and number of materials
-        Material *material = model->getDefaultMaterial();
+        // Material variables
+        float value;
+        glm::vec3 color;
+        Material *material;
+        Material::Attribute material_attribute;
         const std::size_t materials = model->getNumberOfMaterials();
 
-        // Ambient color
-        Material::Attribute material_attribute = Material::AMBIENT;
-        glm::vec3 color = material->getColor(material_attribute);
-        if (ImGui::ColorEdit3("Ambient", &color.x)) {
-            material->setColor(material_attribute, color);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setColor(material_attribute, color);
-            }
-        }
+        // Global material
+        if (ImGui::TreeNodeEx("Global", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TextDisabled("Chages will be applied to all materials");
 
-        // Diffuse color
-        material_attribute = Material::DIFFUSE;
-        color = material->getColor(material_attribute);
-        if (ImGui::ColorEdit3("Diffuse", &color.x)) {
-            material->setColor(material_attribute, color);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setColor(material_attribute, color);
-            }
-        }
+            // Get the material and number of materials
+            material = model->getDefaultMaterial();
 
-        // Specular color
-        material_attribute = Material::SPECULAR;
-        color = material->getColor(material_attribute);
-        if (ImGui::ColorEdit3("Specular", &color.x)) {
-            material->setColor(material_attribute, color);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setColor(material_attribute, color);
+            // Ambient color
+            material_attribute = Material::AMBIENT;
+            color = material->getColor(material_attribute);
+            if (ImGui::ColorEdit3("Ambient", &color.x)) {
+                material->setColor(material_attribute, color);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setColor(material_attribute, color);
+                }
             }
-        }
 
-        // Shininess value
-        material_attribute = Material::SHININESS;
-        float value = material->getValue(material_attribute);
-        if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(material_attribute, value);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(material_attribute, value);
+            // Diffuse color
+            material_attribute = Material::DIFFUSE;
+            color = material->getColor(material_attribute);
+            if (ImGui::ColorEdit3("Diffuse", &color.x)) {
+                material->setColor(material_attribute, color);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setColor(material_attribute, color);
+                }
             }
-        }
 
-        // Roughness value
-        material_attribute = Material::ROUGHNESS;
-        value = material->getValue(material_attribute);
-        if (ImGui::DragFloat("Roughness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(material_attribute, value);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(material_attribute, value);
+            // Specular color
+            material_attribute = Material::SPECULAR;
+            color = material->getColor(material_attribute);
+            if (ImGui::ColorEdit3("Specular", &color.x)) {
+                material->setColor(material_attribute, color);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setColor(material_attribute, color);
+                }
             }
-        }
 
-        // Metalness value
-        material_attribute = Material::METALNESS;
-        value = material->getValue(material_attribute);
-        if (ImGui::DragFloat("Metalness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(material_attribute, value);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(material_attribute, value);
+            // Shininess value
+            material_attribute = Material::SHININESS;
+            value = material->getValue(material_attribute);
+            if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+                material->setValue(material_attribute, value);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setValue(material_attribute, value);
+                }
             }
-        }
 
-        // Parallax value
-        material_attribute = Material::DISPLACEMENT;
-        value = material->getValue(material_attribute);
-        if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
-            material->setValue(material_attribute, value);
-            for (std::size_t i = 0; i < materials; i++) {
-                model->getMaterial(i)->setValue(material_attribute, value);
+            // Roughness value
+            material_attribute = Material::ROUGHNESS;
+            value = material->getValue(material_attribute);
+            if (ImGui::DragFloat("Roughness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+                material->setValue(material_attribute, value);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setValue(material_attribute, value);
+                }
             }
-        }
 
-        // Finish global material
-        ImGui::Unindent();
-        ImGui::Separator();
+            // Metalness value
+            material_attribute = Material::METALNESS;
+            value = material->getValue(material_attribute);
+            if (ImGui::DragFloat("Metalness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+                material->setValue(material_attribute, value);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setValue(material_attribute, value);
+                }
+            }
+
+            // Parallax value
+            material_attribute = Material::DISPLACEMENT;
+            value = material->getValue(material_attribute);
+            if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+                material->setValue(material_attribute, value);
+                for (std::size_t i = 0U; i < materials; i++) {
+                    model->getMaterial(i)->setValue(material_attribute, value);
+                }
+            }
+
+            // Textures enabled status
+            if (ImGui::TreeNodeEx("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::TextDisabled("Chages will be applied to all textures");
+
+                // Ambient textures enabled status
+                material_attribute = Material::AMBIENT;
+                enabled = material->isTextureEnabled(material_attribute);
+                if (ImGui::Checkbox("Ambient", &enabled)) {
+                    material->setTextureEnabled(material_attribute, enabled);
+                    for (std::size_t i = 0U; i < materials; i++) {
+                        model->getMaterial(i)->setTextureEnabled(material_attribute, enabled);
+                    }
+                }
+
+                // Shininess textures enabled status
+                material_attribute = Material::SHININESS;
+                enabled = material->isTextureEnabled(material_attribute);
+                ImGui::SameLine(210.0F);
+                if (ImGui::Checkbox("Shininess", &enabled)) {
+                    material->setTextureEnabled(material_attribute, enabled);
+                    for (std::size_t i = 0U; i < materials; i++) {
+                        model->getMaterial(i)->setTextureEnabled(material_attribute, enabled);
+                    }
+                }
+
+                // Diffuse textures enabled status
+                material_attribute = Material::DIFFUSE;
+                enabled = material->isTextureEnabled(material_attribute);
+                if (ImGui::Checkbox("Diffuse", &enabled)) {
+                    material->setTextureEnabled(material_attribute, enabled);
+                    for (std::size_t i = 0U; i < materials; i++) {
+                        model->getMaterial(i)->setTextureEnabled(material_attribute, enabled);
+                    }
+                }
+
+                // Normal textures enabled status
+                material_attribute = Material::NORMAL;
+                enabled = material->isTextureEnabled(material_attribute);
+                ImGui::SameLine(210.0F);
+                if (ImGui::Checkbox("Normal", &enabled)) {
+                    material->setTextureEnabled(material_attribute, enabled);
+                    for (std::size_t i = 0U; i < materials; i++) {
+                        model->getMaterial(i)->setTextureEnabled(material_attribute, enabled);
+                    }
+                }
+
+                // Specular textures enabled status
+                material_attribute = Material::SPECULAR;
+                enabled = material->isTextureEnabled(material_attribute);
+                if (ImGui::Checkbox("Specular", &enabled)) {
+                    material->setTextureEnabled(material_attribute, enabled);
+                    for (std::size_t i = 0U; i < materials; i++) {
+                        model->getMaterial(i)->setTextureEnabled(material_attribute, enabled);
+                    }
+                }
+
+                // Displacement textures enabled status
+                material_attribute = Material::DISPLACEMENT;
+                enabled = material->isTextureEnabled(material_attribute);
+                ImGui::SameLine(210.0F);
+                if (ImGui::Checkbox("Displacement", &enabled)) {
+                    material->setTextureEnabled(material_attribute, enabled);
+                    for (std::size_t i = 0U; i < materials; i++) {
+                        model->getMaterial(i)->setTextureEnabled(material_attribute, enabled);
+                    }
+                }
+
+                // Pop textures enabled status node
+                ImGui::TreePop();
+            }
+
+            // Pop global material
+            ImGui::TreePop();
+        }
 
         // Material stock
         for (std::size_t i = 0; i < materials; i++) {
