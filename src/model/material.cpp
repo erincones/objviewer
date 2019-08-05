@@ -452,16 +452,16 @@ void Material::bind(GLSLProgram *const program) const {
     program->setUniform("refractive_index", value[5]);
 
     // Set texture uniforms
-    program->setUniform("ambient_tex",      texture[0]);
-    program->setUniform("diffuse_tex",      texture[1]);
-    program->setUniform("specular_tex",     texture[2]);
-    program->setUniform("shininess_tex",    texture[3]);
-    program->setUniform("normal_tex",       texture[4]);
-    program->setUniform("displacement_tex", texture[5]);
-    program->setUniform("cube_map_tex",     texture[6]);
+    program->setUniform("ambient_tex",      0);
+    program->setUniform("diffuse_tex",      1);
+    program->setUniform("specular_tex",     2);
+    program->setUniform("shininess_tex",    3);
+    program->setUniform("normal_tex",       4);
+    program->setUniform("displacement_tex", 5);
+    program->setUniform("cube_map_tex",     6);
 
     // Bind textures
-    for (GLuint i = 0; i < 6U; i++) {
+    for (GLuint i = 0U; i < 6U; i++) {
         Material::bindTexture(i, (texture[i] == GL_FALSE) || !texture_enabled[i] ? Material::default_texture[i < 4U ? 0U : i - 3U] : texture[i]);
     }
     Material::bindTexture(6U, texture[6]);
