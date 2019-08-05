@@ -17,7 +17,7 @@
 
 
 class Scene {
-    private:
+    protected:
         // Attributes
 
         /** Window */
@@ -37,8 +37,8 @@ class Scene {
         glm::vec3 clear_color;
 
 
-        /** Current camera */
-        Camera *current_camera;
+        /** Active camera */
+        Camera *active_camera;
 
 
         /** Camera stock */
@@ -48,7 +48,11 @@ class Scene {
         std::map<std::size_t, std::pair<Model *, std::size_t> > model_stock;
 
         /** Program stock */
-        std::map<std::size_t, GLSLProgram *> program_stock;
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> > program_stock;
+
+
+        /** Thousands of frames */
+        double kframes;
 
 
         // Constructors
@@ -63,6 +67,12 @@ class Scene {
         Scene &operator=(const Scene &) = delete;
 
 
+        // Methods
+
+        /** Draw the scene */
+        void drawScene();
+
+
         // Static attributes
 
         /** Instances counter */
@@ -75,8 +85,21 @@ class Scene {
         static bool initialized_glad;
 
 
+        /** OpenGL vendor */
+        static const GLubyte *opengl_vendor;
+
+        /** OpenGL renderer */
+        static const GLubyte *opengl_renderer;
+
+        /** OpenGL version */
+        static const GLubyte *opengl_version;
+
+        /** GLSL version */
+        static const GLubyte *glsl_version;
+
+
         /** Default program */
-        static GLSLProgram *default_program;
+        static std::pair<GLSLProgram *, std::string> default_program;
 
 
         // Static methods
@@ -108,8 +131,8 @@ class Scene {
         glm::vec2 getResolution() const;
 
 
-        /** Get the current camera */
-        Camera *getCurrentCamera() const;
+        /** Get the active camera */
+        Camera *getActiveCamera() const;
 
 
         /** Get camera by ID */
@@ -121,10 +144,17 @@ class Scene {
         /** Get program by ID */
         GLSLProgram *getProgram(const std::size_t &id) const;
 
+        /** Get program description by ID */
+        std::string getProgramDescription(const std::size_t &id) const;
+
+
+        /** Get frames */
+        double getFrames() const;
+
 
         // Setters
 
-        /** Select current camara */
+        /** Select the active camara */
         bool selectCamera(const std::size_t &id);
 
         /** Add camera */
@@ -139,13 +169,16 @@ class Scene {
 
 
         /** Add empty GLSL program */
-        std::size_t addProgram();
+        std::size_t addProgram(const std::string &desc);
 
         /** Add GLSL program without geometry shader */
-        std::size_t addProgram(const std::string &vert, const std::string &frag);
+        std::size_t addProgram(const std::string &desc, const std::string &vert, const std::string &frag);
 
         /** Add GLSL program */
-        std::size_t addProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        std::size_t addProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag);
+
+        /** Set program description */
+        bool setProgramDescription(const std::string &desc, const std::size_t &id);
 
 
         /** Set title */
@@ -158,7 +191,7 @@ class Scene {
         // Methods
 
         /** Render main loop */
-        void mainLoop();
+        virtual void mainLoop();
 
 
         /** Remove camera */
@@ -174,22 +207,47 @@ class Scene {
         // Destructor
 
         /** Scene destructor */
-        ~Scene();
+        virtual ~Scene();
 
 
         // Static getters
 
+        /** Get the OpenGL vendor */
+        static const GLubyte *getOpenGLVendor();
+
+        /** Get the OpenGL renderer */
+        static const GLubyte *getOpenGLRenderer();
+
+        /** Get the OpenGL version */
+        static const GLubyte *getOpenGLVersion();
+
+        /** Get the GLSL version */
+        static const GLubyte *getGLSLVersion();
+
+
         /** Get the default program */
         static GLSLProgram *getDefaultProgram();
+
+        /** Get the default program */
+        static std::string getDefaultProgramDescription();
 
 
         // Static setters
 
         /** Set the default program without geometry shader */
-        static void setDefaultProgram(const std::string &vert, const std::string &frag);
+        static void setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &frag);
 
         /** Set the default program */
-        static void setDefaultProgram(const std::string &vert, const std::string &geom, const std::string &frag);
+        static void setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag);
+
+        /** Se the default program description */
+        static void setDefaultProgramDescription(const std::string &desc);
+    
+
+        // Static methods
+
+        /** Remove the default program */
+        static void removeDefaultProgram();
 };
 
 #endif // __SCENE_HPP_
