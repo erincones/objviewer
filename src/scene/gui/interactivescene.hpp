@@ -42,7 +42,7 @@ class InteractiveScene : public Scene {
         bool modelWidget(std::pair<Model *, std::size_t> &model_data);
 
         /** Draw the program widget */
-        bool programWidget(std::pair<GLSLProgram *, std::string> &program_data, const std::size_t &id);
+        bool programWidget(std::pair<GLSLProgram *, std::string> &program_data);
 
         /** Draw a program combo item */
         void programComboItem(std::pair<Model *, std::size_t> &model_data, const std::size_t &program);

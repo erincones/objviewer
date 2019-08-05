@@ -176,12 +176,12 @@ void InteractiveScene::showMainGUIWindow() {
             std::size_t textures  = 0U;
 
             // Calculate models statistics
-            for (const std::pair<const std::size_t, const std::pair<const Model *const, const std::size_t> > &model_data : model_stock) {
-                vertices  += model_data.second.first->getNumberOfVertices();
-                elements  += model_data.second.first->getNumberOfElements();
-                triangles += model_data.second.first->getNumberOfTriangles();
-                materials += model_data.second.first->getNumberOfMaterials();
-                textures  += model_data.second.first->getNumberOfTextures();
+            for (const std::pair<const std::size_t, const std::pair<const Model *const, const std::size_t> > &program_data : model_stock) {
+                vertices  += program_data.second.first->getNumberOfVertices();
+                elements  += program_data.second.first->getNumberOfElements();
+                triangles += program_data.second.first->getNumberOfTriangles();
+                materials += program_data.second.first->getNumberOfMaterials();
+                textures  += program_data.second.first->getNumberOfTextures();
             }
 
             // Programs statistics variables
@@ -269,15 +269,15 @@ void InteractiveScene::showMainGUIWindow() {
         std::size_t remove = 0U;
 
         // Draw each model node
-        for (std::pair<const std::size_t, std::pair<Model *, std::size_t> > &model_data : model_stock) {
+        for (std::pair<const std::size_t, std::pair<Model *, std::size_t> > &program_data : model_stock) {
             // ID and title strings
-            const std::string id = std::to_string(model_data.first);
-            const std::string model_title = "Model " + id + ": " + model_data.second.first->getName();
+            const std::string id = std::to_string(program_data.first);
+            const std::string program_title = "Model " + id + ": " + program_data.second.first->getName();
 
             // Draw node and catch the selected to remove
-            if (ImGui::TreeNode(id.c_str(), model_title.c_str())) {
-                if (!modelWidget(model_data.second)) {
-                    remove = model_data.first;
+            if (ImGui::TreeNode(id.c_str(), program_title.c_str())) {
+                if (!modelWidget(program_data.second)) {
+                    remove = program_data.first;
                 }
                 ImGui::TreePop();
             }
@@ -292,6 +292,46 @@ void InteractiveScene::showMainGUIWindow() {
         ImGui::Spacing();
         if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F))) {
             addModel();
+        }
+        ImGui::Spacing();
+    }
+
+    // Programs section
+    if (ImGui::CollapsingHeader("GLSL Programs")) {
+        // Program to remove ID
+        std::size_t remove = 0U;
+
+        // Draw the default program node
+        std::string program_title = "Program 0: " + Scene::default_program.second;
+        if (ImGui::TreeNodeEx("0", ImGuiTreeNodeFlags_DefaultOpen, program_title.c_str())) {
+            programWidget(Scene::default_program);
+            ImGui::TreePop();
+        }
+
+        // Draw each program node
+        for (std::pair<const std::size_t, std::pair<GLSLProgram *, std::string> > &program_data : program_stock) {
+            // ID and title strings
+            const std::string id = std::to_string(program_data.first);
+            program_title = "Program " + id + ": " + program_data.second.second;
+
+            // Draw node and catch the selected to remove
+            if (ImGui::TreeNode(id.c_str(), program_title.c_str())) {
+                if (!programWidget(program_data.second)) {
+                    remove = program_data.first;
+                }
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove program
+        if (remove != 0U) {
+            removeProgram(remove);
+        }
+
+        // Add program button
+        ImGui::Spacing();
+        if (ImGui::Button("Add GLSL program", ImVec2(454.0F, 19.0F))) {
+            addProgram("Empty");
         }
         ImGui::Spacing();
     }
@@ -366,13 +406,13 @@ bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id)
 
 // Draw the model widget
 bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) {
+    // Keep model flag
+    bool keep = true;
+
     // Get the model and program ID
     Model *const model = model_data.first;
     const std::size_t program = model_data.second;
     
-    // Keep model flag
-    bool keep = true;
-
     // Model path
     std::string str = model->getPath();
     if (ImGui::InputText("Path", &str, ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -758,19 +798,69 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
 }
 
 // Draw the program widget
-bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &program_data, const std::size_t &id) {
-    return true;
+bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &program_data) {
+    // Keep program flag
+    bool keep = true;
+
+    // Get the program and shader paths
+    GLSLProgram *const program = program_data.first;
+    std::string vert = program->getShaderPath(GL_VERTEX_SHADER);
+    std::string geom = program->getShaderPath(GL_GEOMETRY_SHADER);
+    std::string frag = program->getShaderPath(GL_FRAGMENT_SHADER);
+
+    // Program description
+    std::string description = program_data.second;
+    if (ImGui::InputText("Description", &description, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        program_data.second = description;
+    }
+    // Reload button
+    if (ImGui::Button("Reload")) {
+        program->link();
+    }
+    // Remove button for non default program
+    if (program != Scene::default_program.first) {
+        keep = !ImGui::RemoveButton();
+    }
+    // Check the valid status
+    if (!program->isValid()) {
+        ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Could not link the program");
+    }
+
+    // Shaders sources paths
+    ImGui::BulletText("Shaders");
+    
+    bool link = ImGui::InputText("Vertex", &vert, ImGuiInputTextFlags_EnterReturnsTrue);
+    link |= ImGui::InputText("Geometry", &geom, ImGuiInputTextFlags_EnterReturnsTrue);
+    link |= ImGui::InputText("Fragment", &frag, ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // Relink if a path has been modified
+    if (link) {
+        // Program without geometry shader
+        if (geom.empty()) {
+            program->link(vert, frag);
+        }
+        // Program with geometry shader
+        else {
+            program->link(vert, geom, frag);
+        }
+    }
+
+    // Separator for open nodes
+    ImGui::Separator();
+
+    // Return the keep model value
+    return keep;
 }
 
 // Draw a program combo item
-void InteractiveScene::programComboItem(std::pair<Model *, std::size_t> &model_data, const std::size_t &program) {
+void InteractiveScene::programComboItem(std::pair<Model *, std::size_t> &program_data, const std::size_t &program) {
     // Selected status
-    bool selected = model_data.second == program;
+    bool selected = program_data.second == program;
 
     // Add items and mark the selected
     const std::string program_title = (program == 0U ? Scene::default_program.second : program_stock[program].second + " (" + std::to_string(program) + ")");
     if (ImGui::Selectable(program_title.c_str(), selected)) {
-        model_data.second = program;
+        program_data.second = program;
     }
 
     // Set default focus to selected
