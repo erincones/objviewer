@@ -68,7 +68,7 @@ void Scene::drawScene() {
         }
 
         // Get the program
-        GLSLProgram * program;
+        GLSLProgram *program;
 
         // Default program
         if (model_data.second.second == 0U) {
@@ -78,7 +78,7 @@ void Scene::drawScene() {
         // Program associated to the model or default if not exists
         else {
             std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
-            GLSLProgram * program = (result == program_stock.end() ? Scene::default_program : result->second).first;
+            program = (result == program_stock.end() ? Scene::default_program : result->second).first;
         }
 
         // Bind the camera
@@ -181,9 +181,14 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         }
     }
 
-    // Load default textures if there are no instances
+    // If there are no instances
     if ((Scene::instances == 0U) && Scene::initialized_glad) {
+        // Load default textures
         Material::createDefaultTextures();
+
+        // Create the new default program
+        Scene::default_program.first = new GLSLProgram();
+        Scene::default_program.second = "Empty (Default)";
     }
 
     // Count instance
@@ -304,7 +309,17 @@ std::size_t Scene::addProgram(const std::string &desc, const std::string &vert, 
 
 // Set program description
 bool Scene::setProgramDescription(const std::string &desc, const std::size_t &id) {
+    // Find the program
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::iterator result = program_stock.find(id);
 
+    // Return false if the program does not exists
+    if (result == program_stock.end()) {
+        return false;
+    }
+
+    // Set the program description
+    result->second.second = desc;
+    return true;
 }
 
 
@@ -451,20 +466,22 @@ Scene::~Scene() {
         delete program_data.second.first;
     }
 
-    // Delete the default program
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-    }
-
-
     // Destroy window
     if (window != nullptr) {
         glfwDestroyWindow(window);
     }
 
-    // Delete textures and terminate GLFW if is the last instance
+    // If is the last instance
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
+        // Delete the default tetures
         Material::deleteDefaultTextures();
+
+        // Delete the default program
+        delete Scene::default_program.first;
+        Scene::default_program.first = nullptr;
+        Scene::default_program.second = "NULL";
+
+        // Terminate GLFW
         glfwTerminate();
 
         // Reset initialized Glad flag
@@ -555,6 +572,6 @@ void Scene::removeDefaultProgram() {
     if (Scene::default_program.first != nullptr) {
         delete Scene::default_program.first;
         Scene::default_program.first = nullptr;
-        Scene::default_program.second = "NULL (Defaut)";
+        Scene::default_program.second = "NULL";
     }
 }
