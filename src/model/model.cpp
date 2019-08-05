@@ -1,5 +1,7 @@
 #include "model.hpp"
 
+#include "../dirsep.h"
+
 #include "loader/modelloader.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -42,8 +44,11 @@ void Model::load() {
     triangles = model_data->triangles;
     textures  = model_data->textures;
 
+    // New default material
+    default_material = new Material("Default");
 
-    // Clea up the loader data
+
+    // Clean up the loader data
     model_data->object_stock.clear();
     model_data->material_stock.clear();
     delete model_data;
@@ -82,6 +87,12 @@ void Model::clear() {
     // Clear stocks
     object_stock.clear();
     material_stock.clear();
+
+    // Clear the default material
+    if (default_material != nullptr) {
+        delete default_material;
+        default_material = nullptr;
+    }
 }
 
 // Update the model and normal matrices
@@ -104,6 +115,9 @@ void Model::updateMatrices() {
 // Empty model constructor
 Model::Model() :
     ModelData(std::string()),
+
+    // Enabled
+    enabled(true),
     
     // Geometry
     position(0.0F),
@@ -113,11 +127,17 @@ Model::Model() :
     // Matrices
     model_mat(1.0F),
     model_origin_mat(1.0F),
-    normal_mat(1.0F) {}
+    normal_mat(1.0F),
+    
+    // Default material
+    default_material(nullptr) {}
 
 // Model constructor
 Model::Model(const std::string &path) :
     ModelData(path),
+
+    // Enabled
+    enabled(true),
     
     // Geometry
     position(0.0F),
@@ -127,13 +147,22 @@ Model::Model(const std::string &path) :
     // Matrices
     model_mat(1.0F),
     model_origin_mat(1.0F),
-    normal_mat(1.0F) {
+    normal_mat(1.0F),
+    
+    // Default material
+    default_material(nullptr)  {
     // Load the model
     load();
 }
 
 
 // Getters
+
+// Get the enabled status
+bool Model::isEnabled() const {
+    return enabled;
+}
+
 
 // Get the open status
 bool Model::isOpen() const {
@@ -145,6 +174,11 @@ bool Model::isMaterialOpen() const {
     return material_open;
 }
 
+
+// Get the model name
+std::string Model::getName() const {
+    return model_path.substr(model_path.find_last_of(DIR_SEP) + 1U);
+}
 
 // Get the model file path
 std::string Model::getPath() const {
@@ -166,6 +200,11 @@ Material *Model::getMaterial(const std::size_t &index) const {
 
     // Return the material
     return material_stock[index];
+}
+
+// Get the default material
+Material *Model::getDefaultMaterial() const {
+    return default_material;
 }
 
 
@@ -244,6 +283,12 @@ std::size_t Model::getNumberOfTextures() const {
 
 // Setters
 
+// Set the enabled status
+void Model::setEnabled(const bool &status) {
+    enabled = status;
+}
+
+
 // Set the new path
 void Model::setPath(const std::string &new_path) {
     model_path = new_path;
@@ -309,7 +354,7 @@ void Model::resetGeometry() {
 // Draw the model
 void Model::draw(GLSLProgram *const program) const {
     // Check model and program status
-    if (!model_open || (program == nullptr) || (!program->isValid())) {
+    if (!enabled || !model_open || (program == nullptr) || (!program->isValid())) {
         return;
     }
 

@@ -1,4 +1,4 @@
-#include "scene/scene.hpp"
+#include "scene/gui/interactivescene.hpp"
 
 #include "dirsep.h"
 
@@ -14,7 +14,7 @@ int main (int argc, char **argv) {
 
 
     // Create the scene and check it
-    Scene *scene = new Scene("OBJViewer");
+    InteractiveScene *scene = new InteractiveScene("OBJViewer");
 
     // Exit with error if the scene is not valid
     if (!scene->isValid()) {
@@ -33,7 +33,7 @@ int main (int argc, char **argv) {
 
     // Add the programs
     const std::string common_vert_shader = shader_path + "common.vert.glsl";
-    Scene::setDefaultProgram(common_vert_shader, shader_path + "normals.frag.glsl");
+    Scene::setDefaultProgram("Precalculated normals", common_vert_shader, shader_path + "normals.frag.glsl");
 
     // Add the models
     std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");

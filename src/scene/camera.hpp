@@ -172,7 +172,7 @@ class Camera {
         // Setters
 
         /** Set the orthogonal projection status */
-        void isOrthogonal(const bool &status);
+        void setOrthogonal(const bool &status);
 
 
         /** Set position */
@@ -220,6 +220,12 @@ class Camera {
 
         /** Rotate the camera */
         void rotate(const glm::vec2 &delta);
+
+
+        // Destructor
+
+        /** Camera destructor */
+        virtual ~Camera();
 
 
         // Static getters

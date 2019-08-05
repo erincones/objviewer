@@ -193,6 +193,12 @@ std::string GLSLProgram::getShaderPath(const GLenum &type) const {
 }
 
 
+// Get the number of shaders
+std::size_t GLSLProgram::getNumberOfShaders() const {
+    return shaders;
+}
+
+
 // Setters
 
 // Set the value for an integer uniform
