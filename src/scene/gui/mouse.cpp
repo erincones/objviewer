@@ -60,8 +60,7 @@ void Mouse::setPressed(const bool &status) {
 
 // Set the translation point
 void Mouse::setTranslationPoint(const double &x, const double &y) {
-    translation.x = static_cast<float>(x);
-    translation.y = static_cast<float>(y);
+    translation = normalizeToWindow(x, y);
 }
 
 // Set the rotation point
@@ -102,7 +101,7 @@ glm::quat Mouse::rotate(const double &x, const double &y) {
 
 // Normalize a point
 glm::vec2 Mouse::normalizeToWindow(const double &x, const double &y) {
-    return glm::vec2((2.0F * static_cast<float>(x) - width) / width, (height + 2.0F * static_cast<float>(y)) / height);
+    return glm::vec2((2.0F * static_cast<float>(x) - width) / width, (height - 2.0F * static_cast<float>(y)) / height);
 }
 
 // Project point to sphere
