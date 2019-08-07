@@ -12,8 +12,8 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
   - [x] Interactive material attributes
 - [x] Shaders loading in runtime
 - [x] 2D and cube maps textures loading in runtime
-- [ ] Interactive camera
-  - [ ] Mouse and keyboard control
+- [x] Interactive camera
+  - [x] Mouse and keyboard control
   - [x] Orthogonal and perspective projection
   - [x] Variable speed
 - [ ] Lighting techniques
