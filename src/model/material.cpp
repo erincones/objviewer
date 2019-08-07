@@ -29,9 +29,9 @@ GLuint Material::default_texture[3] = {GL_FALSE, GL_FALSE, GL_FALSE};
 // Private static methods
 
 // Create a default texture
-GLuint Material::createDefaultTexture(const glm::vec3 &color) {
+GLuint Material::createDefaultTexture(const GLubyte *const color) {
     // Border color
-    float border[4] = {color[0], color[1], color[2], 1.0F};
+    float border[4] = {255.0F / color[0], 255.0F / color[1], 255.0F / color[2], 1.0F};
 
     // Generate the new texture
     GLuint texture;
@@ -46,7 +46,7 @@ GLuint Material::createDefaultTexture(const glm::vec3 &color) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // Load texture image
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_FLOAT, &color[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &color[0]);
 
     // Return texture
     return texture;
@@ -484,19 +484,31 @@ Material::~Material() {
 
 // Create the default textures
 void Material::createDefaultTextures() {
+    // Color array
+    GLubyte color[3];
+
     // Create the white texture
     if (Material::default_texture[0] == GL_FALSE) {
-        Material::default_texture[0] = Material::createDefaultTexture(glm::vec3(1.0F));
+        color[0] = 255U;
+        color[1] = 255U;
+        color[2] = 255U;
+        Material::default_texture[0] = Material::createDefaultTexture(color);
     }
 
     // Create the blue texture
     if (Material::default_texture[1] == GL_FALSE) {
-        Material::default_texture[1] = Material::createDefaultTexture(glm::vec3(0.0F, 0.0F, 1.0F));
+        color[0] = 0U;
+        color[1] = 0U;
+        color[2] = 255U;
+        Material::default_texture[1] = Material::createDefaultTexture(color);
     }
 
     // Create the black texture
     if (Material::default_texture[2] == GL_FALSE) {
-        Material::default_texture[2] = Material::createDefaultTexture(glm::vec3(0.0F));
+        color[0] = 0U;
+        color[1] = 0U;
+        color[2] = 0U;
+        Material::default_texture[2] = Material::createDefaultTexture(color);
     }
 }
 
