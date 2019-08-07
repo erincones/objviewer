@@ -29,10 +29,10 @@ class Camera {
 
 
         /** Resolution with */
-        int width;
+        float width;
 
         /** Resolution height */
-        int height;
+        float height;
 
         /** Field of view */
         float fov;

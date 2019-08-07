@@ -3,6 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/trigonometric.hpp>
 
+#include <cmath>
+
 
 // Static attributes
 
@@ -34,8 +36,8 @@ void Camera::updateViewMatrix() {
 // Update projection matrices
 void Camera::updateProjectionMatrices() {
     // Auxiliar values
-    const float aspect = (float)width / (float)height;
-    const float ratio = glm::atan(fov / 2.0F);
+    const float aspect = width / height;
+    const float ratio = std::atan(fov / 2.0F);
     const float distance = glm::length(position);
 
     // Orthogonal limits
@@ -80,7 +82,7 @@ glm::vec3 Camera::getDirection() const {
 
 // Get look angles
 glm::vec3 Camera::getRotation() const {
-    return glm::degrees(glm::vec3(glm::atan(front.z, front.x), glm::asin(front.y), glm::asin(up.x)));
+    return glm::degrees(glm::vec3(std::atan2(front.z, front.x), std::asin(front.y), std::asin(up.x)));
 }
 
 // Get up vector
@@ -154,14 +156,14 @@ void Camera::setRotation(const glm::vec3 &angle) {
     glm::vec3 radian = glm::radians(glm::vec3(angle.x, glm::clamp(angle.y, -89.0F, 89.0F), angle.z));
 
     // Update the direction vector
-    front.x = glm::cos(radian.y) * glm::cos(radian.x);
-    front.y = glm::sin(radian.y);
-    front.z = glm::cos(radian.y) * glm::sin(radian.x);
+    front.x = std::cos(radian.y) * std::cos(radian.x);
+    front.y = std::sin(radian.y);
+    front.z = std::cos(radian.y) * std::sin(radian.x);
     front = glm::normalize(front);
 
     // Update up world vector
-    up.x = glm::sin(radian.z);
-    up.y = glm::cos(radian.z);
+    up.x = std::sin(radian.z);
+    up.y = std::cos(radian.z);
     up = glm::normalize(up);
 
     // Update right vector
@@ -188,12 +190,12 @@ void Camera::setFOV(const float &new_fov) {
 // Set resolution
 void Camera::setResolution(const glm::vec2 &resolution) {
     // Set the resolution values
-    width = static_cast<int>(resolution.x);
-    height = static_cast<int>(resolution.y);
+    width =resolution.x;
+    height = resolution.y;
 
     // Prevent divisions by zero
-    if (height == 0) {
-        height = 1;
+    if (height == 0.0F) {
+        height = 1.0F;
     }
 
     // Update matrices
@@ -291,9 +293,9 @@ void Camera::rotate(const glm::vec2 &delta) {
     pitch = glm::clamp(pitch + delta.y * Camera::sensibility, -89.0F, 89.0F);
 
     // Update look vector
-    front.x = glm::cos(glm::radians(pitch)) * glm::cos(glm::radians(yaw));
-    front.y = glm::sin(glm::radians(pitch));
-    front.z = glm::cos(glm::radians(pitch)) * glm::sin(glm::radians(yaw));
+    front.x = std::cos(glm::radians(pitch)) * std::cos(glm::radians(yaw));
+    front.y = std::sin(glm::radians(pitch));
+    front.z = std::cos(glm::radians(pitch)) * std::sin(glm::radians(yaw));
     front  = glm::normalize(front);
 
     // Update right vector

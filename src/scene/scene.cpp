@@ -35,17 +35,17 @@ std::pair<GLSLProgram *, std::string> Scene::default_program = std::pair<GLSLPro
 // Static methods
 
 // GLFW error callback
-void Scene::error_callback(int error, const char *description) {
+void Scene::errorCallback(int error, const char *description) {
     std::cerr << "error " << error << ": " << description << std::endl;
 }
 
 // GLFW framebuffer size callback
-void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void Scene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     // Resize viewport
     glViewport(0, 0, width, height);
 
     // Get the scene and update the window resolution
-    Scene *scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
+    Scene *const scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
     scene->width = width;
     scene->height = height;
 
@@ -111,7 +111,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     // Initialize GLFW if there are no instances
     if (Scene::instances == 0U) {
         // Setup error callback
-        glfwSetErrorCallback(Scene::error_callback);
+        glfwSetErrorCallback(Scene::errorCallback);
 
         // Initialize the library
         if (glfwInit() != GLFW_TRUE) {
@@ -144,7 +144,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     else {
         // Set the user pointer to this scene and setup callbacks
         glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, Scene::framebuffer_size_callback);
+        glfwSetFramebufferSizeCallback(window, Scene::framebufferSizeCallback);
 
         // Maximize window and setup as the current context
         glfwMaximizeWindow(window);
@@ -380,6 +380,18 @@ void Scene::mainLoop() {
 
         // Count frame
         kframes += 0.001;
+    }
+}
+
+
+// Reload all programs
+void Scene::reloadPrograms() {
+    // Reload the default program
+    Scene::default_program.first->link();
+
+    // Reload the programs in stock
+    for (std::pair<const std::size_t, std::pair<GLSLProgram *, std::string> > &program_data : program_stock) {
+        program_data.second.first->link();
     }
 }
 
