@@ -45,7 +45,7 @@ void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height)
     glViewport(0, 0, width, height);
 
     // Get the scene and update the window resolution
-    Scene *scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
+    Scene *const scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
     scene->width = width;
     scene->height = height;
 
@@ -380,6 +380,18 @@ void Scene::mainLoop() {
 
         // Count frame
         kframes += 0.001;
+    }
+}
+
+
+// Reload all programs
+void Scene::reloadPrograms() {
+    // Reload the default program
+    Scene::default_program.first->link();
+
+    // Reload the programs in stock
+    for (std::pair<const std::size_t, std::pair<GLSLProgram *, std::string> > &program_data : program_stock) {
+        program_data.second.first->link();
     }
 }
 

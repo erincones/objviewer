@@ -194,6 +194,10 @@ class Scene {
         virtual void mainLoop();
 
 
+        /** Reload all programs */
+        void reloadPrograms();
+
+
         /** Remove camera */
         bool removeCamera(const std::size_t &id);
 
