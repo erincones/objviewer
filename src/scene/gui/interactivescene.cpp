@@ -33,9 +33,107 @@ char InteractiveScene::repository_url[] = "https://github.com/Rebaya17/objviewer
 // Private statics methods
 
 // GLFW framebuffer size callback
-void InteractiveScene::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void InteractiveScene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     // Execute the scene framebuffer size callback
-    Scene::framebuffer_size_callback(window, width, height);
+    Scene::framebufferSizeCallback(window, width, height);
+}
+
+// GLFW mouse button callback
+void InteractiveScene::mouseButtonCallback(GLFWwindow *window, int, int action, int) {
+    // Get the ImGuiIO reference and the capture IO status
+    ImGuiIO &io = ImGui::GetIO();
+    const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+
+    // Disable the mouse if release a mouse button and the GUI don't want to capture IO
+    if (!capture_io && (action == GLFW_RELEASE)) {
+        static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window))->setCursorEnabled(false);
+    }
+}
+
+// GLFW cursor callback
+void InteractiveScene::cursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
+    // Get the interactive scene 
+    InteractiveScene *const scene = static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window));
+    scene->cursor_position.x = static_cast<float>(xpos);
+    scene->cursor_position.y = static_cast<float>(ypos);
+
+    // Get the ImGuiIO reference and the capture IO status
+    ImGuiIO &io = ImGui::GetIO();
+    const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+
+    // Rotate the active camera if  the GUI don't want to capture IO and the main GUI window is not visible
+    if (!capture_io || !scene->show_main_gui) {
+        scene->active_camera->rotate(scene->mouse->translate(xpos, ypos));
+    }
+}
+
+// GLFW scroll callback
+void InteractiveScene::scrollCallback(GLFWwindow *window, double, double yoffset) {
+    // Get the ImGuiIO reference and the capture IO status
+    ImGuiIO &io = ImGui::GetIO();
+    const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+
+    // Update the active camera zoom if the GUI don't want to capture IO
+    if (!capture_io) {
+        static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window))->active_camera->zoom(yoffset);
+    }
+}
+
+// GLFW key callback
+void InteractiveScene::keyCallback(GLFWwindow *window, int key, int, int action, int modifier) {
+    // Get the pressed status
+    bool pressed = action != GLFW_RELEASE;
+    
+    // Get the interactive scene 
+    InteractiveScene *const scene = static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window));
+
+    // Get the ImGuiIO reference and the capture IO status
+    ImGuiIO &io = ImGui::GetIO();
+    const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+
+    switch (key) {
+        // Toggle the main GUI window visibility
+        case GLFW_KEY_ESCAPE:
+            if (pressed) {
+                scene->show_main_gui = !capture_io || !scene->show_main_gui;
+                scene->setCursorEnabled(scene->show_main_gui);
+            }
+            return;
+
+        // Toggle the about window
+        case GLFW_KEY_F1:
+            if (pressed) {
+                scene->setAboutVisible(!scene->show_about);
+            }
+            return;
+
+        // Toggle the about ImGui window
+        case GLFW_KEY_F11:
+            if (pressed) {
+                scene->setAboutImGuiVisible(!scene->show_about_imgui);
+            }
+            return;
+
+        // Toggle the metrics window
+        case GLFW_KEY_F12:
+            if (pressed) {
+                scene->setMetricsVisible(!scene->show_metrics);
+            }
+            return;
+
+
+        // Toggle the camera boost
+        case GLFW_KEY_LEFT_SHIFT:
+        case GLFW_KEY_RIGHT_SHIFT:
+            Camera::setBoosted(pressed);
+            return;
+
+        // Reload shaders
+        case GLFW_KEY_R:
+            if (pressed && (modifier == GLFW_MOD_CONTROL)) {
+                scene->reloadPrograms();
+            }
+    }
 }
 
 
@@ -44,7 +142,7 @@ void InteractiveScene::framebuffer_size_callback(GLFWwindow *window, int width, 
 // Draw the GUI
 void InteractiveScene::drawGUI() {
     // Check the visibility of all windows
-	if (!show_main_gui_win && !show_metrics_win && !show_about_win && !show_about_imgui_win) {
+	if (!show_main_gui && !show_metrics && !show_about && !show_about_imgui) {
 		return;
     }
 
@@ -54,23 +152,41 @@ void InteractiveScene::drawGUI() {
 	ImGui::NewFrame();
 
     // Show the main GUI window
-    if (show_main_gui_win) {
+    if (show_main_gui) {
         showMainGUIWindow();
     }
 
     // Show the about window
-    if (show_about_win) {
-        InteractiveScene::showAboutWindow(show_about_win);
+    if (show_about) {
+        InteractiveScene::showAboutWindow(show_about);
     }
 
 	// Show the metrics built-in window
-	if (show_metrics_win) {
-        ImGui::ShowMetricsWindow(&show_metrics_win);
+	if (show_metrics) {
+        ImGui::ShowMetricsWindow(&show_metrics);
     }
 
     // Show the about ImGui built-in window
-    if (show_about_imgui_win) {
-        ImGui::ShowAboutWindow(&show_about_imgui_win);
+    if (show_about_imgui) {
+        ImGui::ShowAboutWindow(&show_about_imgui);
+    }
+
+    // Update focus
+    switch (focus) {
+        // Set focus to the most front window
+        case InteractiveScene::GUI:
+            ImGui::SetWindowFocus();
+            focus = InteractiveScene::NONE;
+            break;
+
+        // Set focus to the scene
+        case InteractiveScene::SCENE:
+            ImGui::SetWindowFocus(nullptr);
+            focus = InteractiveScene::NONE;
+            break;
+
+        // Nothing for none
+        case InteractiveScene::NONE: break;
     }
 
     // Render the GUI
@@ -87,11 +203,11 @@ void InteractiveScene::showMainGUIWindow() {
     ImGui::SetNextWindowSize(ImVec2(470.0F, static_cast<float>(height)), ImGuiCond_Always);
 
     // Create the main GUI window
-    const bool open = ImGui::Begin("Settings", &show_main_gui_win, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+    const bool open = ImGui::Begin("Settings", &show_main_gui, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
     ImGui::PopStyleVar();
 
     // Abort if the window is not showing
-    if (!show_main_gui_win || !open) {
+    if (!show_main_gui || !open) {
         ImGui::End();
         return;
     }
@@ -129,13 +245,13 @@ void InteractiveScene::showMainGUIWindow() {
         }
 
         // About and metrics buttons
-        show_about_win |= ImGui::Button("About OBJViewer");
+        show_about |= ImGui::Button("About OBJViewer");
 
         ImGui::SameLine();
-        show_about_imgui_win |= ImGui::Button("About Dear ImGui");
+        show_about_imgui |= ImGui::Button("About Dear ImGui");
 
         ImGui::SameLine();
-        show_metrics_win |= ImGui::Button("Metrics");
+        show_metrics |= ImGui::Button("Metrics");
     }
 
     // Scene section
@@ -147,10 +263,9 @@ void InteractiveScene::showMainGUIWindow() {
             ImGui::Text("Version: %s",      Scene::opengl_version);
             ImGui::Text("GLSL version: %s", Scene::glsl_version);
             ImGui::TreePop();
-            ImGui::Separator();
         }
 
-        // Window info
+        // Window information
         if (ImGui::TreeNodeEx("Window", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Text("Width:  %d",  width);
             ImGui::SameLine(210.0F);
@@ -158,12 +273,14 @@ void InteractiveScene::showMainGUIWindow() {
             ImGui::Text("Height: %d", height);
             ImGui::SameLine(210.0F);
             ImGui::Text("Frames:  %.3fE3", kframes);
+            ImGui::Text("Mouse: %.0f, %.0f", cursor_position.x, cursor_position.y);
+            ImGui::HelpMarker("(x, y)");
             ImGui::Spacing();
+            // Background color
             if (ImGui::ColorEdit3("Background", &clear_color.r)) {
                 glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
             }
             ImGui::TreePop();
-            ImGui::Separator();
         }
 
         // Scene statistics
@@ -225,12 +342,26 @@ void InteractiveScene::showMainGUIWindow() {
 
     // Cameras section
     if (ImGui::CollapsingHeader("Cameras")) {
+        // Global settings
+        if (ImGui::TreeNodeEx("Global", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // Sensibility
+            float value = Camera::getSensibility();
+            if (ImGui::DragFloat("Sensibility", &value, 0.25F, 0.0F, 0.0F, "%.4f")) {
+                Camera::setSensibility(value);
+            }
+            // Boost speed
+            value = Camera::getBoostedSpeed();
+            if (ImGui::DragFloat("Boost speed", &value, 0.05F, 0.0F, 0.0F, "%.4f")) {
+                Camera::setBoostedSpeed(value);
+            }
+            ImGui::TreePop();
+        }
+
         // Active camera
-        ImGui::BulletText("Active");
-        ImGui::Indent();
-        cameraWidget(active_camera);
-        ImGui::Unindent();
-        ImGui::Spacing();
+        if (ImGui::TreeNodeEx("Active", ImGuiTreeNodeFlags_DefaultOpen)) {
+            cameraWidget(active_camera);
+            ImGui::TreePop();
+        }
 
         // Camera to remove ID
         std::size_t remove = 0U;
@@ -357,7 +488,6 @@ bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id)
         if (camera_stock.size() > 1U) {
             keep = !ImGui::RemoveButton();
         }
-        ImGui::Spacing();
     }
 
     // Projection
@@ -374,26 +504,26 @@ bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id)
     
     // Position
     glm::vec3 value = camera->getPosition();
-    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setPosition(value);
     }
     
     // Direction
     value = camera->getDirection();
-    if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+    if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setDirection(value);
     }
     
     // Clipping planes
     glm::vec2 clipping = camera->getClipping();
-    if (ImGui::DragFloat2("Clipping", &clipping.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+    if (ImGui::DragFloat2("Clipping", &clipping.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setClipping(clipping);
     }
     ImGui::HelpMarker("(Near, Far)");
 
     // Field of view
     float fov = camera->getFOV();
-    if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4F")) {
+    if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setFOV(fov);
     }
 
@@ -479,20 +609,20 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
     if (ImGui::TreeNodeEx("Geometry", ImGuiTreeNodeFlags_DefaultOpen)) {
         // Position
         glm::vec3 value = model->Model::getPosition();
-        if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+        if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
             model->Model::setPosition(value);
         }
 
         // Rotation
         value = model->Model::getRotationAngles();
-        if (ImGui::DragFloat3("Rotation", &value.x, 0.50F, 0.0F, 0.0F, "%.4F")) {
+        if (ImGui::DragFloat3("Rotation", &value.x, 0.50F, 0.0F, 0.0F, "%.4f")) {
             model->Model::setRotation(value);
         }
         ImGui::HelpMarker("Angles in degrees");
 
         // Scale
         value = model->Model::getScale();
-        if (ImGui::DragFloat3("Scale", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
+        if (ImGui::DragFloat3("Scale", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
             model->setScale(value);
         }
 
@@ -564,7 +694,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Shininess value
             material_attribute = Material::SHININESS;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+            if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -574,7 +704,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Roughness value
             material_attribute = Material::ROUGHNESS;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Roughness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+            if (ImGui::DragFloat("Roughness", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -584,7 +714,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Metalness value
             material_attribute = Material::METALNESS;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Metalness", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+            if (ImGui::DragFloat("Metalness", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -594,7 +724,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Parallax value
             material_attribute = Material::DISPLACEMENT;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, FLT_MAX, "%.4F")) {
+            if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -870,6 +1000,26 @@ void InteractiveScene::programComboItem(std::pair<Model *, std::size_t> &program
 }
 
 
+// Process keyboard input
+void InteractiveScene::processKeyboardInput() {
+    // Return if the GUI wants the IO
+    ImGuiIO &io = ImGui::GetIO();
+    if (io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {
+        return;
+    }
+
+    // Camera movement
+    if (glfwGetKey(window, GLFW_KEY_W))                                           active_camera->travell(Camera::FRONT);
+    if (glfwGetKey(window, GLFW_KEY_S))                                           active_camera->travell(Camera::BACK);
+    if (glfwGetKey(window, GLFW_KEY_A)     || glfwGetKey(window, GLFW_KEY_LEFT))  active_camera->travell(Camera::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_D)     || glfwGetKey(window, GLFW_KEY_RIGHT)) active_camera->travell(Camera::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) || glfwGetKey(window, GLFW_KEY_UP))    active_camera->travell(Camera::UP);
+    if (glfwGetKey(window, GLFW_KEY_C)     || glfwGetKey(window, GLFW_KEY_DOWN))  active_camera->travell(Camera::DOWN);
+
+}
+
+
+
 // Constructor
 
 // Interactive scene constructor
@@ -877,11 +1027,21 @@ InteractiveScene::InteractiveScene(const std::string &title, const int &width, c
     // Scene
     Scene(title, width, height, context_ver_maj, context_ver_min),
 
+    // Mouse
+    mouse(new Mouse(width, height)),
+
+    // Cursor
+    cursor_enabled(true),
+    cursor_position(0.0F),
+
+    // Focus
+    focus(InteractiveScene::GUI),
+
     // Show default GUI windows
-    show_main_gui_win(true),
-    show_metrics_win(false),
-    show_about_win(false),
-    show_about_imgui_win(false),
+    show_main_gui(true),
+    show_metrics(false),
+    show_about(false),
+    show_about_imgui(false),
 
     // Focus on GUI by default
     focus_gui(true) {
@@ -889,7 +1049,11 @@ InteractiveScene::InteractiveScene(const std::string &title, const int &width, c
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
         // Set the user pointer to this scene and setup callbacks
         glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, InteractiveScene::framebuffer_size_callback);
+        glfwSetFramebufferSizeCallback(window, InteractiveScene::framebufferSizeCallback);
+        glfwSetMouseButtonCallback(window, InteractiveScene::mouseButtonCallback);
+        glfwSetCursorPosCallback(window, InteractiveScene::cursorPosCallback);
+        glfwSetScrollCallback(window, InteractiveScene::scrollCallback);
+        glfwSetKeyCallback(window, InteractiveScene::keyCallback);
 
 
         // Setup the ImGui context
@@ -909,6 +1073,105 @@ InteractiveScene::InteractiveScene(const std::string &title, const int &width, c
         ImGui::StyleColorsDark();
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0F);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2.0F);
+    }
+}
+
+
+// Getters
+
+// Get the main GUI visible status
+bool InteractiveScene::isMainGUIVisible() const {
+    return show_main_gui;
+}
+
+// Get the metrics window visible status
+bool InteractiveScene::isMetricsVisible() const {
+    return show_metrics;
+}
+
+// Get the about window visible status
+bool InteractiveScene::isAboutVisible() const {
+    return show_about;
+}
+
+// Get the about ImGui window visible status
+bool InteractiveScene::isAboutImGuiVisible() const {
+    return show_about_imgui;
+}
+
+
+// Get the cursor enabled status
+bool InteractiveScene::isCursorEnabled() const {
+    return ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouse;
+}
+
+// Get the mouse
+Mouse *InteractiveScene::getMouse() const {
+    return mouse;
+}
+
+
+// Setters
+
+// Set the main GUI visible status
+void InteractiveScene::setMainGUIVisible(const bool &status) {
+    show_main_gui = status;
+    focus = InteractiveScene::GUI;
+}
+
+// Set the metrics window visible status
+void InteractiveScene::setMetricsVisible(const bool &status) {
+    // Update the visible status
+    show_metrics = status;
+
+    // Keep focus to scene if is not showing the main GUI window
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouse) {
+        focus = InteractiveScene::SCENE;
+    }
+}
+
+// Set the about window visible status
+void InteractiveScene::setAboutVisible(const bool &status) {
+    // Update the visible status
+    show_about = status;
+
+    // Keep focus to scene if is not showing the main GUI window
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouse) {
+        focus = InteractiveScene::SCENE;
+    }
+}
+
+// Set the about ImGui window visible status
+void InteractiveScene::setAboutImGuiVisible(const bool &status) {
+    // Update the visible status
+    show_about_imgui = status;
+
+    // Keep focus to scene if is not showing the main GUI window
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouse) {
+        focus = InteractiveScene::SCENE;
+    }
+}
+
+// Set the mouse enabled status
+void InteractiveScene::setCursorEnabled(const bool &status) {
+    // Enable cursor
+    if (status) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        focus = InteractiveScene::GUI;
+    }
+
+    // Disable cursor
+    else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        focus = InteractiveScene::SCENE;
+
+        // Update position
+        double xpos;
+        double ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        mouse->setTranslationPoint(xpos, ypos);
     }
 }
 
@@ -937,6 +1200,9 @@ void InteractiveScene::mainLoop() {
         drawScene();
         drawGUI();
 
+        // Process the keyboard input
+        processKeyboardInput();
+
         // Poll events and swap buffers
         glfwPollEvents();
         glfwSwapBuffers(window);
@@ -951,6 +1217,9 @@ void InteractiveScene::mainLoop() {
 
 // Interactive scene destructor
 InteractiveScene::~InteractiveScene() {
+    // Delete the mouse
+    delete mouse;
+
     // Terminate GUI if is the last instance
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
         ImGui_ImplOpenGL3_Shutdown();

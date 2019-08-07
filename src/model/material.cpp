@@ -414,14 +414,14 @@ void Material::setCubeMapTexturePath(const std::string (&path)[6]) {
 void Material::reloadTexture(const Material::Attribute &attrib) {
     // Reload textures
     for (int i = 0; i < 6; i++) {
-        if ((attrib & Material::TEXTURE_ATTRIBUTE[i]) != 0U) {
+        if (attrib & Material::TEXTURE_ATTRIBUTE[i]) {
             glDeleteTextures(1, &texture[i]);
             texture[i] = Material::load2DTexture(texture_path[i]);
         }
     }
 
     // Cube map texture
-    if ((attrib & Material::CUBE_MAP) != 0U) {
+    if (attrib & Material::CUBE_MAP) {
         glDeleteTextures(1, &texture[6]);
         texture[6] = Material::loadCubeMapTexture({texture_path[6], texture_path[7], texture_path[8], texture_path[9], texture_path[10], texture_path[11]});
     }
