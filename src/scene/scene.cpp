@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#define TEXTURE_BUFFERS 5
+
 
 // Private static attributes
 
@@ -13,6 +15,23 @@ std::size_t Scene::element_id = 1U;
 
 // Glad loaded flag
 bool Scene::initialized_glad = false;
+
+
+// Screen width
+GLsizei Scene::screen_width = 0U;
+
+// Screen
+GLsizei Scene::screen_height = 0U;
+
+
+// Geometry frame buffer object
+GLuint Scene::fbo = GL_FALSE;
+
+// Render buffer object
+GLuint Scene::rbo = GL_FALSE;
+
+// Textures buffers
+GLuint Scene::texture_buffer[TEXTURE_BUFFERS] = {GL_FALSE};
 
 
 // OpenGL vendor
@@ -32,7 +51,77 @@ const GLubyte *Scene::glsl_version = nullptr;
 std::pair<GLSLProgram *, std::string> Scene::default_program = std::pair<GLSLProgram *, std::string>(nullptr, "NULL (Defaut)");
 
 
-// Static methods
+// Private static methods
+
+// Create the geometry frame buffer
+void Scene::createGeometryFrameBuffer() {
+    // Frame buffer object
+    glGenFramebuffers(1, &Scene::fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, Scene::fbo);
+
+    // Generate the texture buffers and attach each one
+    glGenTextures(TEXTURE_BUFFERS, Scene::texture_buffer);
+
+    // Possition texture buffer
+    Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
+
+    // Normal and displacement texture buffer
+    Scene::attachTextureToFrameBuffer(1, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+
+    // Ambient texture buffer
+    Scene::attachTextureToFrameBuffer(2, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+
+    // Diffuse and alpha texture buffer
+    Scene::attachTextureToFrameBuffer(3, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+
+    // Specular and shininess texture buffer
+    Scene::attachTextureToFrameBuffer(4, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+
+
+    // Color attachments to use
+    GLenum attachment[TEXTURE_BUFFERS];
+    for (GLuint i = 0; i < TEXTURE_BUFFERS; i++) {
+        attachment[i] = GL_COLOR_ATTACHMENT0 + i;
+    }
+
+    // Draw color attachments to the frame buffer object
+    glDrawBuffers(TEXTURE_BUFFERS, attachment);
+
+
+    // Render buffer object
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+
+    // Set the render buffer storage
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Scene::screen_width, Scene::screen_height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+
+    // Check the geometry frame buffer creation
+    const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "error: the geometry frame buffer object status is not complete (" << status << ")" <<  std::endl;
+    }
+
+    // Unbind geometry frame buffer object
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// Create and attach texture to the frame buffer object
+void Scene::attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type) {
+    // Possition texture buffer
+    glBindTexture(GL_TEXTURE_2D, Scene::texture_buffer[attachment]);
+
+    // Texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Texure data
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, Scene::screen_width, Scene::screen_height, 0, format, type, nullptr);
+
+    // Attach texture buffer to the frame buffer object
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment, GL_TEXTURE_2D, Scene::texture_buffer[0], 0);
+}
 
 // GLFW error callback
 void Scene::errorCallback(int error, const char *description) {
@@ -183,6 +272,14 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
 
     // If there are no instances
     if ((Scene::instances == 0U) && Scene::initialized_glad) {
+        // Get the screen resolution
+        const GLFWvidmode *const video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        Scene::screen_width = video_mode->width;
+        Scene::screen_height = video_mode->height;
+
+        // Create the geometry frame buffer
+        Scene::createGeometryFrameBuffer();
+
         // Load default textures
         Material::createDefaultTextures();
 
@@ -485,6 +582,11 @@ Scene::~Scene() {
 
     // If is the last instance
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
+        // Delete the geometry frame buffer
+        glDeleteTextures(TEXTURE_BUFFERS, Scene::texture_buffer);
+        glDeleteRenderbuffers(1, &rbo);
+        glDeleteFramebuffers(1, &fbo);
+
         // Delete the default tetures
         Material::deleteDefaultTextures();
 

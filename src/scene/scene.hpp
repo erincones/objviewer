@@ -85,6 +85,23 @@ class Scene {
         static bool initialized_glad;
 
 
+        /** Screen width */
+        static GLsizei screen_width;
+
+        /** Screen height */
+        static GLsizei screen_height;
+
+
+        /** Geometry frame buffer object */
+        static GLuint fbo;
+
+        /** Render buffer object */
+        static GLuint rbo;
+
+        /** Textures buffers */
+        static GLuint texture_buffer[];
+
+
         /** OpenGL vendor */
         static const GLubyte *opengl_vendor;
 
@@ -103,6 +120,13 @@ class Scene {
 
 
         // Static methods
+
+        /** Create the geometry frame buffer */
+        static void createGeometryFrameBuffer();
+
+        /** Create and attach texture to the frame buffer object */
+        static void attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type);
+
 
         /** GLFW error callback */
         static void errorCallback(int error, const char *description);
