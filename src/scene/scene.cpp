@@ -35,12 +35,12 @@ std::pair<GLSLProgram *, std::string> Scene::default_program = std::pair<GLSLPro
 // Static methods
 
 // GLFW error callback
-void Scene::error_callback(int error, const char *description) {
+void Scene::errorCallback(int error, const char *description) {
     std::cerr << "error " << error << ": " << description << std::endl;
 }
 
 // GLFW framebuffer size callback
-void Scene::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void Scene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     // Resize viewport
     glViewport(0, 0, width, height);
 
@@ -111,7 +111,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     // Initialize GLFW if there are no instances
     if (Scene::instances == 0U) {
         // Setup error callback
-        glfwSetErrorCallback(Scene::error_callback);
+        glfwSetErrorCallback(Scene::errorCallback);
 
         // Initialize the library
         if (glfwInit() != GLFW_TRUE) {
@@ -144,7 +144,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     else {
         // Set the user pointer to this scene and setup callbacks
         glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, Scene::framebuffer_size_callback);
+        glfwSetFramebufferSizeCallback(window, Scene::framebufferSizeCallback);
 
         // Maximize window and setup as the current context
         glfwMaximizeWindow(window);

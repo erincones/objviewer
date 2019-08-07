@@ -105,10 +105,10 @@ class Scene {
         // Static methods
 
         /** GLFW error callback */
-        static void error_callback(int error, const char *description);
+        static void errorCallback(int error, const char *description);
 
         /** GLFW framebuffer size callback */
-        static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+        static void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
 
     public:
