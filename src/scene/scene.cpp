@@ -54,10 +54,6 @@ const GLubyte *Scene::opengl_version = nullptr;
 const GLubyte *Scene::glsl_version = nullptr;
 
 
-// Default program
-std::pair<GLSLProgram *, std::string> Scene::default_program = std::pair<GLSLProgram *, std::string>(nullptr, "NULL (Defaut)");
-
-
 // Private static methods
 
 // Create the geometry frame buffer
@@ -201,14 +197,14 @@ void Scene::drawScene() {
         GLSLProgram *program;
 
         // Default program
-        if (model_data.second.second == 0U) {
-            program = Scene::default_program.first;
+        if ((model_data.second.second == 0U) && (model_data.second.second == 1U)) {
+            program = program_stock[1U].first;
         }
 
         // Program associated to the model or default if not exists
         else {
             std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
-            program = (result == program_stock.end() ? Scene::default_program : result->second).first;
+            program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
         }
 
         // Bind the camera
@@ -234,7 +230,10 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     clear_color(0.45F, 0.55F, 0.60F),
     
     // Active camera
-    active_camera(nullptr) {
+    active_camera(nullptr),
+
+    // Geometry pass program ID
+    geometry_pass_id(0U) {
     // Create window flag
     bool create_window = true;
 
@@ -308,6 +307,13 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
 
             // Enable depth test
             glEnable(GL_DEPTH_TEST);
+
+
+            // Create a empty default geometry pass program
+            program_stock[0U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default geometry pass)");
+
+            // Create a empty default lighting pass program
+            program_stock[1U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default lighting pass)");
         }
     }
 
@@ -323,10 +329,6 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
 
         // Load default textures
         Material::createDefaultTextures();
-
-        // Create the new default program
-        Scene::default_program.first = new GLSLProgram();
-        Scene::default_program.second = "Empty (Default)";
     }
 
     // Count instance
@@ -371,6 +373,12 @@ Model *Scene::getModel(const std::size_t &id) const {
     return result == model_stock.end() ? nullptr : result->second.first;
 }
 
+// Get the program id of a model
+std::size_t Scene::getModelProgram(const std::size_t &id) const {
+    std::map<std::size_t, std::pair<Model *, std::size_t> >::const_iterator result = model_stock.find(id);
+    return result == model_stock.end() ? 0U : result->second.second;
+}
+
 // Get program by ID
 GLSLProgram *Scene::getProgram(const std::size_t &id) const {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
@@ -381,6 +389,34 @@ GLSLProgram *Scene::getProgram(const std::size_t &id) const {
 std::string Scene::getProgramDescription(const std::size_t &id) const {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
     return result == program_stock.end() ? "NOT_FOUND" : result->second.second;
+}
+
+
+// Get the geometry pass program ID
+std::size_t Scene::getGeometryPassProgramID() const {
+    return geometry_pass_id;
+}
+
+
+// Get the default geometry pass program
+GLSLProgram *Scene::getDefaultGeometryPassProgram() {
+    return program_stock[0U].first;
+}
+
+// Get the default geometry pass program description
+std::string Scene::getDefaultGeometryPassProgramDescription() {
+    return program_stock[0U].second;
+}
+
+
+// Get the default lighing pass program
+GLSLProgram *Scene::getDefaultLightingPassProgram() {
+    return program_stock[1U].first;
+}
+
+// Get the default lighing pass program description
+std::string Scene::getDefaultLightingPassProgramDescription() {
+    return program_stock[1U].second;
 }
 
 
@@ -461,6 +497,36 @@ bool Scene::setProgramDescription(const std::string &desc, const std::size_t &id
 }
 
 
+// Get the geometry pass program
+void Scene::setGeometryPassProgram(const std::size_t &id) {
+    geometry_pass_id = id;
+}
+
+
+// Set the default geometry pass program
+void Scene::setDefaultGeometryPassProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
+    program_stock[0U].first->link(vert, frag);
+    program_stock[0U].second = desc + " (Default geometry pass)";
+}
+
+// Se the default geometry pass program description
+void Scene::setDefaultGeometryPassProgramDescription(const std::string &desc) {
+    program_stock[0U].second = desc;
+}
+
+
+// Set the default lighing pass program
+void Scene::setDefaultLightingPassProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
+    program_stock[1U].first->link(vert, frag);
+    program_stock[1U].second = desc + " (Default lighting pass)";
+}
+
+// Se the default lighing pass program description
+void Scene::setDefaultLightingPassProgramDescription(const std::string &desc) {
+    program_stock[1U].second = desc;
+}
+
+
 // Set title
 void Scene::setTitle(const std::string &new_title) {
     title = new_title;
@@ -499,9 +565,14 @@ void Scene::mainLoop() {
         return;
     }
 
-    // Check if the default program is not null
-    if (Scene::default_program.first == nullptr) {
-        std::cerr << "warning: the default program has not been set" << std::endl;
+    // Check the default geometry pass valid status
+    if (!program_stock[0U].first->isValid()) {
+        std::cerr << "warning: the default geometry pass program has not been set or is not valid" << std::endl;
+    }
+
+    // Check the default lighting pass valid status
+    if (!program_stock[1U].first->isValid()) {
+        std::cerr << "warning: the default lighting pass program has not been set or is not valid" << std::endl;
     }
 
     // The rendering main loop
@@ -524,10 +595,6 @@ void Scene::mainLoop() {
 
 // Reload all programs
 void Scene::reloadPrograms() {
-    // Reload the default program
-    Scene::default_program.first->link();
-
-    // Reload the programs in stock
     for (std::pair<const std::size_t, std::pair<GLSLProgram *, std::string> > &program_data : program_stock) {
         program_data.second.first->link();
     }
@@ -581,6 +648,12 @@ bool Scene::removeModel(const std::size_t &id) {
 
 // Remove program
 bool Scene::removeProgram(const std::size_t &id) {
+    // Check if is a default program ID
+    if ((id == 0U) || (id == 1U)) {
+        std::cerr << "error: cannot remove a default program" << std::endl;
+        return false;
+    }
+
     // Search the program
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
 
@@ -594,6 +667,33 @@ bool Scene::removeProgram(const std::size_t &id) {
     program_stock.erase(result);
 
     return true;
+}
+
+
+// Remove the default geometry pass program
+void Scene::removeDefaultGeometryPassProgram() {
+    // Get the program data
+    std::pair<GLSLProgram *, std::string> &program_data = program_stock[0U];
+
+    // Delete the program
+    delete program_data.first;
+
+    // Create a empty program
+    program_data.first =  new GLSLProgram();
+    program_data.second = "Empty (Default geometry pass)";
+}
+
+// Remove the default lighting pass program
+void Scene::removeDefaultLightingPassProgram() {
+    // Get the program data
+    std::pair<GLSLProgram *, std::string> &program_data = program_stock[1U];
+
+    // Delete the program
+    delete program_data.first;
+
+    // Create a empty program
+    program_data.first =  new GLSLProgram();
+    program_data.second = "Empty (Default lighting pass)";
 }
 
 
@@ -635,11 +735,6 @@ Scene::~Scene() {
         // Delete the default tetures
         Material::deleteDefaultTextures();
 
-        // Delete the default program
-        delete Scene::default_program.first;
-        Scene::default_program.first = nullptr;
-        Scene::default_program.second = "NULL";
-
         // Terminate GLFW
         glfwTerminate();
 
@@ -678,59 +773,4 @@ const GLubyte *Scene::getOpenGLVersion() {
 // Get the GLSL version
 const GLubyte *Scene::getGLSLVersion() {
     return Scene::glsl_version;
-}
-
-
-// Get the default program
-GLSLProgram *Scene::getDefaultProgram() {
-    return Scene::default_program.first;
-}
-
-// Get the default program
-std::string Scene::getDefaultProgramDescription() {
-    return Scene::default_program.second;
-}
-
-
-// Static setters
-
-// Set the default program without geometry shader
-void Scene::setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
-    // Delete previous default program
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-    }
-
-    // Create the new default program
-    Scene::default_program.first = new GLSLProgram(vert, frag);
-    Scene::default_program.second = desc + " (Default)";
-}
-
-// Set the default program
-void Scene::setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag) {
-    // Delete previous default program
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-    }
-
-    // Create the new default program
-    Scene::default_program.first = new GLSLProgram(vert, geom, frag);
-    Scene::default_program.second = desc + " (Default)";
-}
-
-// Se the default program description */
-void Scene::setDefaultProgramDescription(const std::string &desc) {
-    Scene::default_program.second = desc + " (Default)";
-}
-
-
-// Static methods
-
-// Remove the default program
-void Scene::removeDefaultProgram() {
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-        Scene::default_program.first = nullptr;
-        Scene::default_program.second = "NULL";
-    }
 }

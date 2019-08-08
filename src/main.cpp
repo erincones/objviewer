@@ -33,7 +33,7 @@ int main (int argc, char **argv) {
 
     // Add the programs
     const std::string common_vert_shader = shader_path + "common.vert.glsl";
-    Scene::setDefaultProgram("Precalculated normals", common_vert_shader, shader_path + "normals.frag.glsl");
+    scene->setDefaultLightingPassProgram("Surface normals", common_vert_shader, shader_path + "normals.frag.glsl");
 
     // Add the models
     std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");

@@ -75,7 +75,7 @@ class InteractiveScene : public Scene {
         bool programWidget(std::pair<GLSLProgram *, std::string> &program_data);
 
         /** Draw a program combo item */
-        void programComboItem(std::pair<Model *, std::size_t> &model_data, const std::size_t &program);
+        bool programComboItem(const std::size_t &current, const std::size_t &program);
 
 
         /** Process keyboard input */

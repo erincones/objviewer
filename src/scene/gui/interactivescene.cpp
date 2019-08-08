@@ -301,11 +301,8 @@ void InteractiveScene::showMainGUIWindow() {
                 textures  += program_data.second.first->getNumberOfTextures();
             }
 
-            // Programs statistics variables
+            // // Calculate program statistics
             std::size_t shaders = 0U;
-            std::size_t default_shaders = Scene::default_program.first->getNumberOfShaders();
-
-            // Calculate program statistics
             for (const std::pair<const std::size_t, std::pair<const GLSLProgram *const, const std::string> > &program_data : program_stock) {
                 shaders += program_data.second.first->getNumberOfShaders();
             }
@@ -326,8 +323,8 @@ void InteractiveScene::showMainGUIWindow() {
             }
 
             // Programs
-            if (ImGui::TreeNodeEx("programsstats", ImGuiTreeNodeFlags_DefaultOpen, "GLSL programs: %lu + 2", program_stock.size())) {
-                ImGui::Text("Shaders: %lu + %lu", shaders, default_shaders); ImGui::HelpMarker("Loaded + Defaults");
+            if (ImGui::TreeNodeEx("programsstats", ImGuiTreeNodeFlags_DefaultOpen, "GLSL programs: %lu", program_stock.size())) {
+                ImGui::Text("Shaders: %lu", shaders);
                 ImGui::TreePop();
             }
 
@@ -432,18 +429,52 @@ void InteractiveScene::showMainGUIWindow() {
         // Program to remove ID
         std::size_t remove = 0U;
 
-        // Draw the default program node
-        std::string program_title = "Program 0: " + Scene::default_program.second;
-        if (ImGui::TreeNodeEx("0", ImGuiTreeNodeFlags_DefaultOpen, program_title.c_str())) {
-            programWidget(Scene::default_program);
-            ImGui::TreePop();
+        // Geometry pass program
+        ImGui::BulletText("Geometry pass program");
+        ImGui::Indent();
+        // Program title with ID for non default programs
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(geometry_pass_id);
+        std::string program_title = (result == program_stock.end() ? "NULL" : result->second.second);
+        if ((geometry_pass_id != 0U) && (geometry_pass_id != 1U)) {
+            program_title.append(" (").append(std::to_string(geometry_pass_id)).append(")");
         }
+        // Show the programs combo
+        ImGui::PushItemWidth(-1.0F);
+        if (ImGui::BeginCombo("###geometry_pass_program", program_title.c_str())) {
+            // For each program in the stock show the item and make the selection
+            size_t new_program = geometry_pass_id;
+            for (const std::pair<const std::size_t, std::pair<const GLSLProgram *const, const std::string> > &program_data : program_stock) {
+                if (programComboItem(geometry_pass_id, program_data.first)) {
+                    new_program = program_data.first;
+                }
+            }
+            geometry_pass_id = new_program;
+            ImGui::EndCombo();
+        }
+        ImGui::PopItemWidth();
+        ImGui::Unindent();
 
         // Draw each program node
         for (std::pair<const std::size_t, std::pair<GLSLProgram *, std::string> > &program_data : program_stock) {
-            // ID and title strings
+            // ID string
             const std::string id = std::to_string(program_data.first);
-            program_title = "Program " + id + ": " + program_data.second.second;
+
+            // Title string
+            switch (program_data.first) {
+                // Default geometry pass program
+                case 0U:
+                    program_title = "Default geometry pass";
+                    break;
+                
+                // Default lighting pass program
+                case 1U:
+                    program_title = "Default lighting pass";
+                    break;
+
+                // Other programs
+                default:
+                    program_title = "Program " + id + ": " + program_data.second.second;
+            }
 
             // Draw node and catch the selected to remove
             if (ImGui::TreeNode(id.c_str(), program_title.c_str())) {
@@ -581,27 +612,23 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         ImGui::TreePop();
     }
 
-    // Program title
-    std::string program_title;
-    // Default program
-    if (program == 0U) {
-        program_title = Scene::default_program.second;
-    }
-    // Program associated to the model and append its ID
-    else {
-        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(program);
-        program_title = (result == program_stock.end() ? "NULL" : result->second.second) + " (" + std::to_string(program) + ")";
+    // Program title with the ID for non default programs
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(program);
+    std::string program_title = (result == program_stock.end() ? "NULL" : result->second.second);
+    if ((program != 0U) && (program != 1U)) {
+        program_title.append(" (").append(std::to_string(geometry_pass_id)).append(")");
     }
 
     // Program combo
     if (ImGui::BeginCombo("GLSL program", program_title.c_str())) {
-        // Default program
-        programComboItem(model_data, 0U);
-        // Progams in the stock
+        // For each program in the stock show the item and make the selection
+        size_t new_program = model_data.second;
         for (const std::pair<const std::size_t, std::pair<const GLSLProgram *const, const std::string> > &program_data : program_stock) {
-            programComboItem(model_data, program_data.first);
+            if (programComboItem(model_data.second, program_data.first)) {
+                new_program = program_data.first;
+            }
         }
-        // End combo
+        model_data.second = new_program;
         ImGui::EndCombo();
     }
 
@@ -932,11 +959,15 @@ bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &prog
     // Keep program flag
     bool keep = true;
 
+
     // Get the program and shader paths
     GLSLProgram *const program = program_data.first;
     std::string vert = program->getShaderPath(GL_VERTEX_SHADER);
     std::string geom = program->getShaderPath(GL_GEOMETRY_SHADER);
     std::string frag = program->getShaderPath(GL_FRAGMENT_SHADER);
+
+    // Default program flag
+    const bool default_program = (program == program_stock[0U].first) || (program == program_stock[1U].first);
 
     // Program description
     std::string description = program_data.second;
@@ -948,7 +979,7 @@ bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &prog
         program->link();
     }
     // Remove button for non default program
-    if (program != Scene::default_program.first) {
+    if (!default_program) {
         keep = !ImGui::RemoveButton();
     }
     // Check the valid status
@@ -958,9 +989,16 @@ bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &prog
 
     // Shaders sources paths
     ImGui::BulletText("Shaders");
-    
+
+    // Vertex shader source path
     bool link = ImGui::InputText("Vertex", &vert, ImGuiInputTextFlags_EnterReturnsTrue);
-    link |= ImGui::InputText("Geometry", &geom, ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // Geometry shader source path for non default programs
+    if (!default_program) {
+        link |= ImGui::InputText("Geometry", &geom, ImGuiInputTextFlags_EnterReturnsTrue);
+    }
+
+    // Fragment shader source path
     link |= ImGui::InputText("Fragment", &frag, ImGuiInputTextFlags_EnterReturnsTrue);
 
     // Relink if a path has been modified
@@ -983,20 +1021,26 @@ bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &prog
 }
 
 // Draw a program combo item
-void InteractiveScene::programComboItem(std::pair<Model *, std::size_t> &program_data, const std::size_t &program) {
+bool InteractiveScene::programComboItem(const std::size_t &current, const std::size_t &program) {
     // Selected status
-    bool selected = program_data.second == program;
+    bool selected = current == program;
 
-    // Add items and mark the selected
-    const std::string program_title = (program == 0U ? Scene::default_program.second : program_stock[program].second + " (" + std::to_string(program) + ")");
-    if (ImGui::Selectable(program_title.c_str(), selected)) {
-        program_data.second = program;
+    // Get the program title and append the ID for non default programs
+    std::string program_title = program_stock[program].second;
+    if ((program != 0U) && (program != 1U)) {
+        program_title.append(" (").append(std::to_string(geometry_pass_id)).append(")");
     }
+    
+    // Show item and get the selection status
+    const bool selection = ImGui::Selectable(program_title.c_str(), selected);
 
     // Set default focus to selected
     if (selected) {
         ImGui::SetItemDefaultFocus();
     }
+
+    // Return the selection
+    return selection;
 }
 
 
@@ -1186,9 +1230,14 @@ void InteractiveScene::mainLoop() {
         return;
     }
 
-    // Check if the default program is not null
-    if (Scene::default_program.first == nullptr) {
-        std::cerr << "warning: the default program has not been set" << std::endl;
+    // Check the default geometry pass valid status
+    if (!program_stock[0U].first->isValid()) {
+        std::cerr << "warning: the default geometry pass program has not been set or is not valid" << std::endl;
+    }
+
+    // Check the default lighting pass valid status
+    if (!program_stock[1U].first->isValid()) {
+        std::cerr << "warning: the default lighting pass program has not been set or is not valid" << std::endl;
     }
 
     // The rendering main loop
@@ -1252,7 +1301,7 @@ void InteractiveScene::showAboutWindow(bool &show) {
     ImGui::Text("GitHub repository:"); ImGui::HelpMarker("Click to select all and press\nCTRL+V to copy to clipboard");
 
     ImGui::PushItemWidth(-1.0F);
-    ImGui::InputText("repourl", InteractiveScene::repository_url, sizeof(InteractiveScene::repository_url), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputText("###repourl", InteractiveScene::repository_url, sizeof(InteractiveScene::repository_url), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
     ImGui::PopItemWidth();
 
     // End window
