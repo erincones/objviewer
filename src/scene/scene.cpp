@@ -24,6 +24,13 @@ GLsizei Scene::screen_width = 0U;
 GLsizei Scene::screen_height = 0U;
 
 
+/** Square vertex array object */
+GLuint Scene::square_vao = GL_FALSE;
+
+/** Square vertex buffer object */
+GLuint Scene::square_vbo = GL_FALSE;
+
+
 // Geometry frame buffer object
 GLuint Scene::fbo = GL_FALSE;
 
@@ -62,7 +69,7 @@ void Scene::createGeometryFrameBuffer() {
     // Generate the texture buffers and attach each one
     glGenTextures(TEXTURE_BUFFERS, Scene::texture_buffer);
 
-    // Possition texture buffer
+    // Position texture buffer
     Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
 
     // Normal and displacement texture buffer
@@ -109,7 +116,7 @@ void Scene::createGeometryFrameBuffer() {
 
 // Create and attach texture to the frame buffer object
 void Scene::attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type) {
-    // Possition texture buffer
+    // Bind texture
     glBindTexture(GL_TEXTURE_2D, Scene::texture_buffer[attachment]);
 
     // Texture parameters
@@ -122,6 +129,40 @@ void Scene::attachTextureToFrameBuffer(const GLenum &attachment, const GLint &in
     // Attach texture buffer to the frame buffer object
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment, GL_TEXTURE_2D, Scene::texture_buffer[0], 0);
 }
+
+
+// Create a square fitted to the screen
+void Scene::createSquare() {
+    // Square data
+    const float data[] = {
+        // Vertices positions // Texture coordinates
+        -1.0F,  1.0F, 0.0F,   0.0F, 1.0F,
+        -1.0F, -1.0F, 0.0F,   0.0F, 0.0F,
+         1.0F,  1.0F, 0.0F,   1.0F, 1.0F,
+         1.0F, -1.0F, 0.0F,   1.0F, 0.0F
+    };
+
+    // Vertex array object
+    glGenVertexArrays(1, &Scene::square_vao);
+    glBindVertexArray(Scene::square_vao);
+
+    // Vertex buffer object
+    glGenBuffers(1, &Scene::square_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, Scene::square_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(data), &data, GL_STATIC_DRAW);
+
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void *>(0));
+
+    // Texture coordinate attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
+
+    // Unbind vertex array object
+    glBindVertexArray(GL_FALSE);
+}
+
 
 // GLFW error callback
 void Scene::errorCallback(int error, const char *description) {
@@ -584,8 +625,12 @@ Scene::~Scene() {
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
         // Delete the geometry frame buffer
         glDeleteTextures(TEXTURE_BUFFERS, Scene::texture_buffer);
-        glDeleteRenderbuffers(1, &rbo);
-        glDeleteFramebuffers(1, &fbo);
+        glDeleteRenderbuffers(1, &Scene::rbo);
+        glDeleteFramebuffers(1, &Scene::fbo);
+
+        // Delete the square vertex buffer object and vertex array object
+        glDeleteBuffers(1, &Scene::square_vbo);
+        glDeleteBuffers(1, &Scene::square_vao);
 
         // Delete the default tetures
         Material::deleteDefaultTextures();

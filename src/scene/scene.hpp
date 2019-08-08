@@ -92,6 +92,13 @@ class Scene {
         static GLsizei screen_height;
 
 
+        /** Square vertex array object */
+        static GLuint square_vao;
+
+        /** Square vertex buffer object */
+        static GLuint square_vbo;
+
+
         /** Geometry frame buffer object */
         static GLuint fbo;
 
@@ -126,6 +133,10 @@ class Scene {
 
         /** Create and attach texture to the frame buffer object */
         static void attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type);
+
+
+        /** Create a square fitted to the screen */
+        static void createSquare();
 
 
         /** GLFW error callback */
