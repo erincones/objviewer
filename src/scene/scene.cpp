@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#define TEXTURE_BUFFERS 5
+
 
 // Private static attributes
 
@@ -13,6 +15,30 @@ std::size_t Scene::element_id = 1U;
 
 // Glad loaded flag
 bool Scene::initialized_glad = false;
+
+
+// Screen width
+GLsizei Scene::screen_width = 0U;
+
+// Screen
+GLsizei Scene::screen_height = 0U;
+
+
+/** Square vertex array object */
+GLuint Scene::square_vao = GL_FALSE;
+
+/** Square vertex buffer object */
+GLuint Scene::square_vbo = GL_FALSE;
+
+
+// Geometry frame buffer object
+GLuint Scene::fbo = GL_FALSE;
+
+// Render buffer object
+GLuint Scene::rbo = GL_FALSE;
+
+// Textures buffers
+GLuint Scene::buffer_texture[TEXTURE_BUFFERS];
 
 
 // OpenGL vendor
@@ -28,11 +54,113 @@ const GLubyte *Scene::opengl_version = nullptr;
 const GLubyte *Scene::glsl_version = nullptr;
 
 
-// Default program
-std::pair<GLSLProgram *, std::string> Scene::default_program = std::pair<GLSLProgram *, std::string>(nullptr, "NULL (Defaut)");
+// Private static methods
+
+// Create the geometry frame buffer
+void Scene::createGeometryFrameBuffer() {
+    // Frame buffer object
+    glGenFramebuffers(1, &Scene::fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, Scene::fbo);
+
+    // Generate the texture buffers and attach each one
+    glGenTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
+
+    // Position texture buffer
+    Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
+
+    // Normal and displacement texture buffer
+    Scene::attachTextureToFrameBuffer(1, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+
+    // Ambient texture buffer
+    Scene::attachTextureToFrameBuffer(2, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+
+    // Diffuse and alpha texture buffer
+    Scene::attachTextureToFrameBuffer(3, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+
+    // Specular and shininess texture buffer
+    Scene::attachTextureToFrameBuffer(4, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 
 
-// Static methods
+    // Color attachments to use
+    GLenum attachment[TEXTURE_BUFFERS];
+    for (GLuint i = 0; i < TEXTURE_BUFFERS; i++) {
+        attachment[i] = GL_COLOR_ATTACHMENT0 + i;
+    }
+
+    // Set the list of draw buffers
+    glDrawBuffers(TEXTURE_BUFFERS, attachment);
+
+
+    // Render buffer object
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+
+    // Set the render buffer storage
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Scene::screen_width, Scene::screen_height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+
+    // Check the geometry frame buffer creation
+    const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "error: the geometry frame buffer object status is not complete (" << status << ")" <<  std::endl;
+    }
+
+    // Unbind geometry frame buffer object
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// Create and attach texture to the frame buffer object
+void Scene::attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type) {
+    // Bind texture
+    glBindTexture(GL_TEXTURE_2D, Scene::buffer_texture[attachment]);
+
+    // Texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Texure data
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, Scene::screen_width, Scene::screen_height, 0, format, type, nullptr);
+
+    // Attach texture buffer to the frame buffer object
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment, GL_TEXTURE_2D, Scene::buffer_texture[attachment], 0);
+}
+
+
+// Create a square fitted to the screen
+void Scene::createSquare() {
+    // Square data
+    const float data[] = {
+        // Vertices positions // Texture coordinates
+        -1.0F,  1.0F, 0.0F,   0.0F, 1.0F,
+        -1.0F, -1.0F, 0.0F,   0.0F, 0.0F,
+         1.0F,  1.0F, 0.0F,   1.0F, 1.0F,
+         1.0F, -1.0F, 0.0F,   1.0F, 0.0F
+    };
+
+    // Vertex array object
+    glGenVertexArrays(1, &Scene::square_vao);
+    glBindVertexArray(Scene::square_vao);
+
+    // Vertex buffer object
+    glGenBuffers(1, &Scene::square_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, Scene::square_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(data), &data, GL_STATIC_DRAW);
+
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void *>(0));
+
+    // Texture coordinate attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
+
+    // Unbind vertex array object
+    glBindVertexArray(GL_FALSE);
+}
+
 
 // GLFW error callback
 void Scene::errorCallback(int error, const char *description) {
@@ -41,9 +169,6 @@ void Scene::errorCallback(int error, const char *description) {
 
 // GLFW framebuffer size callback
 void Scene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
-    // Resize viewport
-    glViewport(0, 0, width, height);
-
     // Get the scene and update the window resolution
     Scene *const scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
     scene->width = width;
@@ -61,6 +186,19 @@ void Scene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
 
 // Draw the scene
 void Scene::drawScene() {
+    // Geometry pass
+
+    // Program pointer
+    GLSLProgram *program;
+
+    // Bind the geometry frame buffer object
+    glBindFramebuffer(GL_FRAMEBUFFER, Scene::fbo);
+
+    // Clear color and depth buffers and resize the viewport
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, screen_width, screen_height);
+
+    // Draw each model
     for (const std::pair<const std::size_t, std::pair<const Model *const, const std::size_t> > model_data : model_stock) {
         // Check the model status
         if (!model_data.second.first->isOpen()) {
@@ -68,18 +206,8 @@ void Scene::drawScene() {
         }
 
         // Get the program
-        GLSLProgram *program;
-
-        // Default program
-        if (model_data.second.second == 0U) {
-            program = Scene::default_program.first;
-        }
-
-        // Program associated to the model or default if not exists
-        else {
-            std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
-            program = (result == program_stock.end() ? Scene::default_program : result->second).first;
-        }
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
+        program = (result == program_stock.end() ? program_stock[0U] : result->second).first;
 
         // Bind the camera
         active_camera->bind(program);
@@ -87,6 +215,41 @@ void Scene::drawScene() {
         // Draw the model
         model_data.second.first->draw(program);
     }
+
+
+    // Lighting pass
+
+    // Bind the default frame buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, GL_FALSE);
+
+    // Clear color and depth buffers and resize the viewport
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width, height);
+
+    // Get the program and use it
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
+    program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
+
+    // Set buffer texture uniforms
+    program->use();
+    program->setUniform("u_position_tex", 0);
+    program->setUniform("u_normal_tex",   1);
+    program->setUniform("u_ambient_tex",  2);
+    program->setUniform("u_diffuse_tex",  3);
+    program->setUniform("u_specular_tex", 4);
+
+    // Bind buffer textures
+    for (GLenum i = 0; i < TEXTURE_BUFFERS; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, Scene::buffer_texture[i]);
+    }
+
+    // Draw square
+    glBindVertexArray(Scene::square_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // Unbind square vertex array
+    glBindVertexArray(GL_FALSE);
 }
 
 
@@ -104,7 +267,10 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     clear_color(0.45F, 0.55F, 0.60F),
     
     // Active camera
-    active_camera(nullptr) {
+    active_camera(nullptr),
+
+    // Geometry pass program ID
+    lighting_program(1U) {
     // Create window flag
     bool create_window = true;
 
@@ -173,22 +339,35 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
             // Setup the swap interval
             glfwSwapInterval(1);
 
+            // Enable depth test
+            glEnable(GL_DEPTH_TEST);
+
             // Set the clear color
             glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
 
-            // Enable depth test
-            glEnable(GL_DEPTH_TEST);
+            // Create a empty default geometry pass program
+            program_stock[0U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default geometry pass)");
+
+            // Create a empty default lighting pass program
+            program_stock[1U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default lighting pass)");
         }
     }
 
     // If there are no instances
     if ((Scene::instances == 0U) && Scene::initialized_glad) {
+        // Get the screen resolution
+        const GLFWvidmode *const video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        Scene::screen_width = video_mode->width;
+        Scene::screen_height = video_mode->height;
+
+        // Create the square to deferred shading
+        Scene::createSquare();
+
+        // Create the geometry frame buffer
+        Scene::createGeometryFrameBuffer();
+
         // Load default textures
         Material::createDefaultTextures();
-
-        // Create the new default program
-        Scene::default_program.first = new GLSLProgram();
-        Scene::default_program.second = "Empty (Default)";
     }
 
     // Count instance
@@ -233,6 +412,12 @@ Model *Scene::getModel(const std::size_t &id) const {
     return result == model_stock.end() ? nullptr : result->second.first;
 }
 
+// Get the program id of a model
+std::size_t Scene::getModelProgram(const std::size_t &id) const {
+    std::map<std::size_t, std::pair<Model *, std::size_t> >::const_iterator result = model_stock.find(id);
+    return result == model_stock.end() ? 0U : result->second.second;
+}
+
 // Get program by ID
 GLSLProgram *Scene::getProgram(const std::size_t &id) const {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
@@ -243,6 +428,34 @@ GLSLProgram *Scene::getProgram(const std::size_t &id) const {
 std::string Scene::getProgramDescription(const std::size_t &id) const {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
     return result == program_stock.end() ? "NOT_FOUND" : result->second.second;
+}
+
+
+// Get the lighting pass program ID
+std::size_t Scene::getLightingPassProgramID() const {
+    return lighting_program;
+}
+
+
+// Get the default geometry pass program
+GLSLProgram *Scene::getDefaultGeometryPassProgram() {
+    return program_stock[0U].first;
+}
+
+// Get the default geometry pass program description
+std::string Scene::getDefaultGeometryPassProgramDescription() {
+    return program_stock[0U].second;
+}
+
+
+// Get the default lighing pass program
+GLSLProgram *Scene::getDefaultLightingPassProgram() {
+    return program_stock[1U].first;
+}
+
+// Get the default lighing pass program description
+std::string Scene::getDefaultLightingPassProgramDescription() {
+    return program_stock[1U].second;
 }
 
 
@@ -323,6 +536,36 @@ bool Scene::setProgramDescription(const std::string &desc, const std::size_t &id
 }
 
 
+// Get the lighting pass program
+void Scene::setLightingPassProgram(const std::size_t &id) {
+    lighting_program = id;
+}
+
+
+// Set the default geometry pass program
+void Scene::setDefaultGeometryPassProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
+    program_stock[0U].first->link(vert, frag);
+    program_stock[0U].second = desc + " (Default geometry pass)";
+}
+
+// Se the default geometry pass program description
+void Scene::setDefaultGeometryPassProgramDescription(const std::string &desc) {
+    program_stock[0U].second = desc;
+}
+
+
+// Set the default lighing pass program
+void Scene::setDefaultLightingPassProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
+    program_stock[1U].first->link(vert, frag);
+    program_stock[1U].second = desc + " (Default lighting pass)";
+}
+
+// Se the default lighing pass program description
+void Scene::setDefaultLightingPassProgramDescription(const std::string &desc) {
+    program_stock[1U].second = desc;
+}
+
+
 // Set title
 void Scene::setTitle(const std::string &new_title) {
     title = new_title;
@@ -361,16 +604,18 @@ void Scene::mainLoop() {
         return;
     }
 
-    // Check if the default program is not null
-    if (Scene::default_program.first == nullptr) {
-        std::cerr << "warning: the default program has not been set" << std::endl;
+    // Check the default geometry pass valid status
+    if (!program_stock[0U].first->isValid()) {
+        std::cerr << "warning: the default geometry pass program has not been set or is not valid" << std::endl;
+    }
+
+    // Check the default lighting pass valid status
+    if (!program_stock[1U].first->isValid()) {
+        std::cerr << "warning: the default lighting pass program has not been set or is not valid" << std::endl;
     }
 
     // The rendering main loop
     while (glfwWindowShouldClose(window) == GLFW_FALSE) {
-        // Clear color and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         // Draw the scene
         drawScene();
 
@@ -386,10 +631,6 @@ void Scene::mainLoop() {
 
 // Reload all programs
 void Scene::reloadPrograms() {
-    // Reload the default program
-    Scene::default_program.first->link();
-
-    // Reload the programs in stock
     for (std::pair<const std::size_t, std::pair<GLSLProgram *, std::string> > &program_data : program_stock) {
         program_data.second.first->link();
     }
@@ -443,6 +684,12 @@ bool Scene::removeModel(const std::size_t &id) {
 
 // Remove program
 bool Scene::removeProgram(const std::size_t &id) {
+    // Check if is a default program ID
+    if ((id == 0U) || (id == 1U)) {
+        std::cerr << "error: cannot remove a default program" << std::endl;
+        return false;
+    }
+
     // Search the program
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(id);
 
@@ -456,6 +703,33 @@ bool Scene::removeProgram(const std::size_t &id) {
     program_stock.erase(result);
 
     return true;
+}
+
+
+// Remove the default geometry pass program
+void Scene::removeDefaultGeometryPassProgram() {
+    // Get the program data
+    std::pair<GLSLProgram *, std::string> &program_data = program_stock[0U];
+
+    // Delete the program
+    delete program_data.first;
+
+    // Create a empty program
+    program_data.first =  new GLSLProgram();
+    program_data.second = "Empty (Default geometry pass)";
+}
+
+// Remove the default lighting pass program
+void Scene::removeDefaultLightingPassProgram() {
+    // Get the program data
+    std::pair<GLSLProgram *, std::string> &program_data = program_stock[1U];
+
+    // Delete the program
+    delete program_data.first;
+
+    // Create a empty program
+    program_data.first =  new GLSLProgram();
+    program_data.second = "Empty (Default lighting pass)";
 }
 
 
@@ -485,13 +759,17 @@ Scene::~Scene() {
 
     // If is the last instance
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
+        // Delete the geometry frame buffer
+        glDeleteTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
+        glDeleteRenderbuffers(1, &Scene::rbo);
+        glDeleteFramebuffers(1, &Scene::fbo);
+
+        // Delete the square vertex buffer object and vertex array object
+        glDeleteBuffers(1, &Scene::square_vbo);
+        glDeleteBuffers(1, &Scene::square_vao);
+
         // Delete the default tetures
         Material::deleteDefaultTextures();
-
-        // Delete the default program
-        delete Scene::default_program.first;
-        Scene::default_program.first = nullptr;
-        Scene::default_program.second = "NULL";
 
         // Terminate GLFW
         glfwTerminate();
@@ -531,59 +809,4 @@ const GLubyte *Scene::getOpenGLVersion() {
 // Get the GLSL version
 const GLubyte *Scene::getGLSLVersion() {
     return Scene::glsl_version;
-}
-
-
-// Get the default program
-GLSLProgram *Scene::getDefaultProgram() {
-    return Scene::default_program.first;
-}
-
-// Get the default program
-std::string Scene::getDefaultProgramDescription() {
-    return Scene::default_program.second;
-}
-
-
-// Static setters
-
-// Set the default program without geometry shader
-void Scene::setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &frag) {
-    // Delete previous default program
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-    }
-
-    // Create the new default program
-    Scene::default_program.first = new GLSLProgram(vert, frag);
-    Scene::default_program.second = desc + " (Default)";
-}
-
-// Set the default program
-void Scene::setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag) {
-    // Delete previous default program
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-    }
-
-    // Create the new default program
-    Scene::default_program.first = new GLSLProgram(vert, geom, frag);
-    Scene::default_program.second = desc + " (Default)";
-}
-
-// Se the default program description */
-void Scene::setDefaultProgramDescription(const std::string &desc) {
-    Scene::default_program.second = desc + " (Default)";
-}
-
-
-// Static methods
-
-// Remove the default program
-void Scene::removeDefaultProgram() {
-    if (Scene::default_program.first != nullptr) {
-        delete Scene::default_program.first;
-        Scene::default_program.first = nullptr;
-        Scene::default_program.second = "NULL";
-    }
 }

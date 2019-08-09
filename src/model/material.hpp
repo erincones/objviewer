@@ -124,7 +124,7 @@ class Material {
         // Static methods
 
         /** Create a default texture */
-        static GLuint createDefaultTexture(const glm::vec3 &color);
+        static GLuint createDefaultTexture(const GLubyte *const color);
 
         /** Bind texture */
         static void bindTexture(const GLenum &index, const GLuint &texture);

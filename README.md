@@ -28,7 +28,7 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
   - [ ] Normal mapping
   - [ ] Occlusion parallax mapping
   - [ ] Shadow mapping
-  - [ ] Deferred shading
+  - [x] Deferred shading
 
 
 # Dependencies

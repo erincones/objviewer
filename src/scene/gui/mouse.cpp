@@ -58,6 +58,13 @@ void Mouse::setPressed(const bool &status) {
 }
 
 
+// Set the window resolution
+void Mouse::setResolution(const int &new_width, const int &new_height) {
+    width = static_cast<float>(new_width);
+    height = static_cast<float>(new_height);
+}
+
+
 // Set the translation point
 void Mouse::setTranslationPoint(const double &x, const double &y) {
     translation = normalizeToWindow(x, y);

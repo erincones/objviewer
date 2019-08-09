@@ -47,6 +47,10 @@ class Scene {
         /** Model stock */
         std::map<std::size_t, std::pair<Model *, std::size_t> > model_stock;
 
+
+        /** Lighting pass program ID */
+        std::size_t lighting_program;
+
         /** Program stock */
         std::map<std::size_t, std::pair<GLSLProgram *, std::string> > program_stock;
 
@@ -85,6 +89,30 @@ class Scene {
         static bool initialized_glad;
 
 
+        /** Screen width */
+        static GLsizei screen_width;
+
+        /** Screen height */
+        static GLsizei screen_height;
+
+
+        /** Square vertex array object */
+        static GLuint square_vao;
+
+        /** Square vertex buffer object */
+        static GLuint square_vbo;
+
+
+        /** Geometry frame buffer object */
+        static GLuint fbo;
+
+        /** Render buffer object */
+        static GLuint rbo;
+
+        /** Buffer textures */
+        static GLuint buffer_texture[];
+
+
         /** OpenGL vendor */
         static const GLubyte *opengl_vendor;
 
@@ -98,11 +126,18 @@ class Scene {
         static const GLubyte *glsl_version;
 
 
-        /** Default program */
-        static std::pair<GLSLProgram *, std::string> default_program;
-
-
         // Static methods
+
+        /** Create the geometry frame buffer */
+        static void createGeometryFrameBuffer();
+
+        /** Create and attach texture to the frame buffer object */
+        static void attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type);
+
+
+        /** Create a square fitted to the screen */
+        static void createSquare();
+
 
         /** GLFW error callback */
         static void errorCallback(int error, const char *description);
@@ -141,11 +176,32 @@ class Scene {
         /** Get model by ID */
         Model *getModel(const std::size_t &id) const;
 
+        /** Get the program id of a model */
+        std::size_t getModelProgram(const std::size_t &id) const;
+
         /** Get program by ID */
         GLSLProgram *getProgram(const std::size_t &id) const;
 
         /** Get program description by ID */
         std::string getProgramDescription(const std::size_t &id) const;
+
+
+        /** Get the lighting pass program ID */
+        std::size_t getLightingPassProgramID() const;
+
+
+        /** Get the default geometry pass program */
+        GLSLProgram *getDefaultGeometryPassProgram();
+
+        /** Get the default geometry pass program description */
+        std::string getDefaultGeometryPassProgramDescription();
+
+
+        /** Get the default lighing pass program */
+        GLSLProgram *getDefaultLightingPassProgram();
+
+        /** Get the default lighing pass program description */
+        std::string getDefaultLightingPassProgramDescription();
 
 
         /** Get frames */
@@ -181,6 +237,24 @@ class Scene {
         bool setProgramDescription(const std::string &desc, const std::size_t &id);
 
 
+        /** Get the lighting pass program */
+        void setLightingPassProgram(const std::size_t &id);
+
+
+        /** Set the default geometry pass program */
+        void setDefaultGeometryPassProgram(const std::string &desc, const std::string &vert, const std::string &frag);
+
+        /** Se the default geometry pass program description */
+        void setDefaultGeometryPassProgramDescription(const std::string &desc);
+
+
+        /** Set the default lighing pass program */
+        void setDefaultLightingPassProgram(const std::string &desc, const std::string &vert, const std::string &frag);
+
+        /** Se the default lighing pass program description */
+        void setDefaultLightingPassProgramDescription(const std::string &desc);
+
+
         /** Set title */
         void setTitle(const std::string &new_title);
 
@@ -208,6 +282,13 @@ class Scene {
         bool removeProgram(const std::size_t &id);
 
 
+        /** Remove the default geometry pass program */
+        void removeDefaultGeometryPassProgram();
+
+        /** Remove the default lighting pass program */
+        void removeDefaultLightingPassProgram();
+
+
         // Destructor
 
         /** Scene destructor */
@@ -227,31 +308,6 @@ class Scene {
 
         /** Get the GLSL version */
         static const GLubyte *getGLSLVersion();
-
-
-        /** Get the default program */
-        static GLSLProgram *getDefaultProgram();
-
-        /** Get the default program */
-        static std::string getDefaultProgramDescription();
-
-
-        // Static setters
-
-        /** Set the default program without geometry shader */
-        static void setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &frag);
-
-        /** Set the default program */
-        static void setDefaultProgram(const std::string &desc, const std::string &vert, const std::string &geom, const std::string &frag);
-
-        /** Se the default program description */
-        static void setDefaultProgramDescription(const std::string &desc);
-    
-
-        // Static methods
-
-        /** Remove the default program */
-        static void removeDefaultProgram();
 };
 
 #endif // __SCENE_HPP_

@@ -47,23 +47,23 @@ void ModelLoader::load() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * index_stock.size(), &index_stock[0], GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), (void *)offsetof(ModelLoader::Vertex, position));
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), reinterpret_cast<void *>(offsetof(ModelLoader::Vertex, position)));
 
-    // Texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), (void *)offsetof(ModelLoader::Vertex, uv_coord));
+    // Texture coordinate attribute
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), reinterpret_cast<void *>(offsetof(ModelLoader::Vertex, uv_coord)));
 
     // Normal attribute
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), (void *)offsetof(ModelLoader::Vertex, normal));
     glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), reinterpret_cast<void *>(offsetof(ModelLoader::Vertex, normal)));
 
     // Tangent attribute
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), (void *)offsetof(ModelLoader::Vertex, tangent));
     glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(ModelLoader::Vertex), reinterpret_cast<void *>(offsetof(ModelLoader::Vertex, tangent)));
 
-    // Ubnind array object and buffers
-    glBindVertexArray(0);
+    // Unbind vertex array object
+    glBindVertexArray(GL_FALSE);
 
     // Free memory
     vertex_stock.clear();

@@ -2,7 +2,7 @@
 
 #define STBI_ASSERT(x)
 #define STB_IMAGE_IMPLEMENTATION
-#include "../stb/stb_image.h"
+#include "stb/stb_image.h"
 
 #include <iostream>
 
@@ -29,9 +29,9 @@ GLuint Material::default_texture[3] = {GL_FALSE, GL_FALSE, GL_FALSE};
 // Private static methods
 
 // Create a default texture
-GLuint Material::createDefaultTexture(const glm::vec3 &color) {
+GLuint Material::createDefaultTexture(const GLubyte *const color) {
     // Border color
-    float border[4] = {color[0], color[1], color[2], 1.0F};
+    float border[4] = {255.0F / color[0], 255.0F / color[1], 255.0F / color[2], 1.0F};
 
     // Generate the new texture
     GLuint texture;
@@ -46,7 +46,7 @@ GLuint Material::createDefaultTexture(const glm::vec3 &color) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // Load texture image
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_FLOAT, &color[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &color[0]);
 
     // Return texture
     return texture;
@@ -216,7 +216,7 @@ float Material::getValue(const Material::Attribute &attrib) const {
 GLuint Material::getTexture(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return texture by attribute
-        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[0] : texture[0];
+        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[2] : texture[0];
         case Material::DIFFUSE:      return texture[1] == GL_FALSE ? Material::default_texture[0] : texture[1];
         case Material::SPECULAR:     return texture[2] == GL_FALSE ? Material::default_texture[0] : texture[2];
         case Material::SHININESS:    return texture[3] == GL_FALSE ? Material::default_texture[0] : texture[3];
@@ -438,32 +438,35 @@ void Material::bind(GLSLProgram *const program) const {
     program->use();
 
     // Set color uniforms
-    program->setUniform("ambient_color",      color[0]);
-    program->setUniform("diffuse_color",      color[1]);
-    program->setUniform("specular_color",     color[2]);
-    program->setUniform("transparency_color", color[3]);
+    program->setUniform("u_ambient_color",      color[0]);
+    program->setUniform("u_diffuse_color",      color[1]);
+    program->setUniform("u_specular_color",     color[2]);
+    program->setUniform("u_transparency_color", color[3]);
 
     // Set value uniforms
-    program->setUniform("shininess",        value[0]);
-    program->setUniform("roughness",        value[1]);
-    program->setUniform("metalness",        value[2]);
-    program->setUniform("transparency",     value[3]);
-    program->setUniform("displacement",     value[4]);
-    program->setUniform("refractive_index", value[5]);
+    program->setUniform("u_shininess",        value[0]);
+    program->setUniform("u_roughness",        value[1]);
+    program->setUniform("u_metalness",        value[2]);
+    program->setUniform("u_transparency",     value[3]);
+    program->setUniform("u_displacement",     value[4]);
+    program->setUniform("u_refractive_index", value[5]);
 
     // Set texture uniforms
-    program->setUniform("ambient_tex",      0);
-    program->setUniform("diffuse_tex",      1);
-    program->setUniform("specular_tex",     2);
-    program->setUniform("shininess_tex",    3);
-    program->setUniform("normal_tex",       4);
-    program->setUniform("displacement_tex", 5);
-    program->setUniform("cube_map_tex",     6);
+    program->setUniform("u_ambient_tex",      0);
+    program->setUniform("u_diffuse_tex",      1);
+    program->setUniform("u_specular_tex",     2);
+    program->setUniform("u_shininess_tex",    3);
+    program->setUniform("u_normal_tex",       4);
+    program->setUniform("u_displacement_tex", 5);
+    program->setUniform("u_cube_map_tex",     6);
 
     // Bind textures
-    for (GLuint i = 0U; i < 6U; i++) {
-        Material::bindTexture(i, (texture[i] == GL_FALSE) || !texture_enabled[i] ? Material::default_texture[i < 4U ? 0U : i - 3U] : texture[i]);
-    }
+    Material::bindTexture(0U, (texture[0] == GL_FALSE) || !texture_enabled[0] ? Material::default_texture[2] : texture[0]);
+    Material::bindTexture(1U, (texture[1] == GL_FALSE) || !texture_enabled[1] ? Material::default_texture[0] : texture[1]);
+    Material::bindTexture(2U, (texture[2] == GL_FALSE) || !texture_enabled[2] ? Material::default_texture[0] : texture[2]);
+    Material::bindTexture(3U, (texture[3] == GL_FALSE) || !texture_enabled[3] ? Material::default_texture[0] : texture[3]);
+    Material::bindTexture(4U, (texture[4] == GL_FALSE) || !texture_enabled[4] ? Material::default_texture[1] : texture[4]);
+    Material::bindTexture(5U, (texture[5] == GL_FALSE) || !texture_enabled[5] ? Material::default_texture[2] : texture[5]);
     Material::bindTexture(6U, texture[6]);
 }
 
@@ -481,19 +484,31 @@ Material::~Material() {
 
 // Create the default textures
 void Material::createDefaultTextures() {
+    // Color array
+    GLubyte color[3];
+
     // Create the white texture
     if (Material::default_texture[0] == GL_FALSE) {
-        Material::default_texture[0] = Material::createDefaultTexture(glm::vec3(1.0F));
+        color[0] = 255U;
+        color[1] = 255U;
+        color[2] = 255U;
+        Material::default_texture[0] = Material::createDefaultTexture(color);
     }
 
     // Create the blue texture
     if (Material::default_texture[1] == GL_FALSE) {
-        Material::default_texture[1] = Material::createDefaultTexture(glm::vec3(0.0F, 0.0F, 1.0F));
+        color[0] = 0U;
+        color[1] = 0U;
+        color[2] = 255U;
+        Material::default_texture[1] = Material::createDefaultTexture(color);
     }
 
     // Create the black texture
     if (Material::default_texture[2] == GL_FALSE) {
-        Material::default_texture[2] = Material::createDefaultTexture(glm::vec3(0.0F));
+        color[0] = 0U;
+        color[1] = 0U;
+        color[2] = 0U;
+        Material::default_texture[2] = Material::createDefaultTexture(color);
     }
 }
 
