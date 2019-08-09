@@ -36,6 +36,9 @@ char InteractiveScene::repository_url[] = "https://github.com/Rebaya17/objviewer
 void InteractiveScene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     // Execute the scene framebuffer size callback
     Scene::framebufferSizeCallback(window, width, height);
+
+    // Resize the mouse resolution
+    static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window))->mouse->setResolution(width, height);
 }
 
 // GLFW mouse button callback
@@ -142,14 +145,14 @@ void InteractiveScene::keyCallback(GLFWwindow *window, int key, int, int action,
 // Draw the GUI
 void InteractiveScene::drawGUI() {
     // Check the visibility of all windows
-	if (!show_main_gui && !show_metrics && !show_about && !show_about_imgui) {
-		return;
+    if (!show_main_gui && !show_metrics && !show_about && !show_about_imgui) {
+        return;
     }
 
-	// New ImGui frame
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+    // New ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     // Show the main GUI window
     if (show_main_gui) {
@@ -161,8 +164,8 @@ void InteractiveScene::drawGUI() {
         InteractiveScene::showAboutWindow(show_about);
     }
 
-	// Show the metrics built-in window
-	if (show_metrics) {
+    // Show the metrics built-in window
+    if (show_metrics) {
         ImGui::ShowMetricsWindow(&show_metrics);
     }
 
@@ -190,8 +193,8 @@ void InteractiveScene::drawGUI() {
     }
 
     // Render the GUI
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
@@ -430,25 +433,25 @@ void InteractiveScene::showMainGUIWindow() {
         std::size_t remove = 0U;
 
         // Geometry pass program
-        ImGui::BulletText("Geometry pass program");
+        ImGui::BulletText("Lighting pass program");
         ImGui::Indent();
-        // Program title with ID for non default programs
-        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(geometry_pass_id);
+        // Program title with ID
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
         std::string program_title = (result == program_stock.end() ? "NULL" : result->second.second);
-        if ((geometry_pass_id != 0U) && (geometry_pass_id != 1U)) {
-            program_title.append(" (").append(std::to_string(geometry_pass_id)).append(")");
+        if ((lighting_program != 0U) && (lighting_program != 1U)) {
+            program_title.append(" (").append(std::to_string(lighting_program)).append(")");
         }
         // Show the programs combo
         ImGui::PushItemWidth(-1.0F);
-        if (ImGui::BeginCombo("###geometry_pass_program", program_title.c_str())) {
+        if (ImGui::BeginCombo("###lighting_pass_program", program_title.c_str())) {
             // For each program in the stock show the item and make the selection
-            size_t new_program = geometry_pass_id;
+            size_t new_program = lighting_program;
             for (const std::pair<const std::size_t, std::pair<const GLSLProgram *const, const std::string> > &program_data : program_stock) {
-                if (programComboItem(geometry_pass_id, program_data.first)) {
+                if (programComboItem(lighting_program, program_data.first)) {
                     new_program = program_data.first;
                 }
             }
-            geometry_pass_id = new_program;
+            lighting_program = new_program;
             ImGui::EndCombo();
         }
         ImGui::PopItemWidth();
@@ -616,7 +619,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(program);
     std::string program_title = (result == program_stock.end() ? "NULL" : result->second.second);
     if ((program != 0U) && (program != 1U)) {
-        program_title.append(" (").append(std::to_string(geometry_pass_id)).append(")");
+        program_title.append(" (").append(std::to_string(program)).append(")");
     }
 
     // Program combo
@@ -1028,7 +1031,7 @@ bool InteractiveScene::programComboItem(const std::size_t &current, const std::s
     // Get the program title and append the ID for non default programs
     std::string program_title = program_stock[program].second;
     if ((program != 0U) && (program != 1U)) {
-        program_title.append(" (").append(std::to_string(geometry_pass_id)).append(")");
+        program_title.append(" (").append(std::to_string(program)).append(")");
     }
     
     // Show item and get the selection status
@@ -1046,9 +1049,9 @@ bool InteractiveScene::programComboItem(const std::size_t &current, const std::s
 
 // Process keyboard input
 void InteractiveScene::processKeyboardInput() {
-    // Return if the GUI wants the IO
+    // Return if the GUI wants the IO and is visible
     ImGuiIO &io = ImGui::GetIO();
-    if (io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {
+    if ((io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) && show_main_gui) {
         return;
     }
 
@@ -1118,6 +1121,13 @@ InteractiveScene::InteractiveScene(const std::string &title, const int &width, c
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0F);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2.0F);
     }
+
+    // Render the GUI before anything
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 

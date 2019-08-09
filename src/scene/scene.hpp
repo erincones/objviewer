@@ -48,8 +48,8 @@ class Scene {
         std::map<std::size_t, std::pair<Model *, std::size_t> > model_stock;
 
 
-        /** Geometry pass program ID */
-        std::size_t geometry_pass_id;
+        /** Lighting pass program ID */
+        std::size_t lighting_program;
 
         /** Program stock */
         std::map<std::size_t, std::pair<GLSLProgram *, std::string> > program_stock;
@@ -109,8 +109,8 @@ class Scene {
         /** Render buffer object */
         static GLuint rbo;
 
-        /** Textures buffers */
-        static GLuint texture_buffer[];
+        /** Buffer textures */
+        static GLuint buffer_texture[];
 
 
         /** OpenGL vendor */
@@ -186,8 +186,8 @@ class Scene {
         std::string getProgramDescription(const std::size_t &id) const;
 
 
-        /** Get the geometry pass program ID */
-        std::size_t getGeometryPassProgramID() const;
+        /** Get the lighting pass program ID */
+        std::size_t getLightingPassProgramID() const;
 
 
         /** Get the default geometry pass program */
@@ -221,7 +221,7 @@ class Scene {
         std::size_t addModel();
 
         /** Add model */
-        std::size_t addModel(const std::string &path, const std::size_t &program_id = 1U);
+        std::size_t addModel(const std::string &path, const std::size_t &program_id = 0U);
 
 
         /** Add empty GLSL program */
@@ -237,8 +237,8 @@ class Scene {
         bool setProgramDescription(const std::string &desc, const std::size_t &id);
 
 
-        /** Get the geometry pass program */
-        void setGeometryPassProgram(const std::size_t &id);
+        /** Get the lighting pass program */
+        void setLightingPassProgram(const std::size_t &id);
 
 
         /** Set the default geometry pass program */

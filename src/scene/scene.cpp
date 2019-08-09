@@ -38,7 +38,7 @@ GLuint Scene::fbo = GL_FALSE;
 GLuint Scene::rbo = GL_FALSE;
 
 // Textures buffers
-GLuint Scene::texture_buffer[TEXTURE_BUFFERS] = {GL_FALSE};
+GLuint Scene::buffer_texture[TEXTURE_BUFFERS];
 
 
 // OpenGL vendor
@@ -63,7 +63,7 @@ void Scene::createGeometryFrameBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, Scene::fbo);
 
     // Generate the texture buffers and attach each one
-    glGenTextures(TEXTURE_BUFFERS, Scene::texture_buffer);
+    glGenTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
 
     // Position texture buffer
     Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
@@ -87,7 +87,7 @@ void Scene::createGeometryFrameBuffer() {
         attachment[i] = GL_COLOR_ATTACHMENT0 + i;
     }
 
-    // Draw color attachments to the frame buffer object
+    // Set the list of draw buffers
     glDrawBuffers(TEXTURE_BUFFERS, attachment);
 
 
@@ -113,9 +113,11 @@ void Scene::createGeometryFrameBuffer() {
 // Create and attach texture to the frame buffer object
 void Scene::attachTextureToFrameBuffer(const GLenum &attachment, const GLint &internalFormat, const GLenum &format, const GLenum &type) {
     // Bind texture
-    glBindTexture(GL_TEXTURE_2D, Scene::texture_buffer[attachment]);
+    glBindTexture(GL_TEXTURE_2D, Scene::buffer_texture[attachment]);
 
     // Texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -123,7 +125,7 @@ void Scene::attachTextureToFrameBuffer(const GLenum &attachment, const GLint &in
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, Scene::screen_width, Scene::screen_height, 0, format, type, nullptr);
 
     // Attach texture buffer to the frame buffer object
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment, GL_TEXTURE_2D, Scene::texture_buffer[0], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment, GL_TEXTURE_2D, Scene::buffer_texture[attachment], 0);
 }
 
 
@@ -167,9 +169,6 @@ void Scene::errorCallback(int error, const char *description) {
 
 // GLFW framebuffer size callback
 void Scene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
-    // Resize viewport
-    glViewport(0, 0, width, height);
-
     // Get the scene and update the window resolution
     Scene *const scene = static_cast<Scene *>(glfwGetWindowUserPointer(window));
     scene->width = width;
@@ -187,6 +186,19 @@ void Scene::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
 
 // Draw the scene
 void Scene::drawScene() {
+    // Geometry pass
+
+    // Program pointer
+    GLSLProgram *program;
+
+    // Bind the geometry frame buffer object
+    glBindFramebuffer(GL_FRAMEBUFFER, Scene::fbo);
+
+    // Clear color and depth buffers and resize the viewport
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, screen_width, screen_height);
+
+    // Draw each model
     for (const std::pair<const std::size_t, std::pair<const Model *const, const std::size_t> > model_data : model_stock) {
         // Check the model status
         if (!model_data.second.first->isOpen()) {
@@ -194,18 +206,8 @@ void Scene::drawScene() {
         }
 
         // Get the program
-        GLSLProgram *program;
-
-        // Default program
-        if ((model_data.second.second == 0U) && (model_data.second.second == 1U)) {
-            program = program_stock[1U].first;
-        }
-
-        // Program associated to the model or default if not exists
-        else {
-            std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
-            program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
-        }
+        std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(model_data.second.second);
+        program = (result == program_stock.end() ? program_stock[0U] : result->second).first;
 
         // Bind the camera
         active_camera->bind(program);
@@ -213,6 +215,41 @@ void Scene::drawScene() {
         // Draw the model
         model_data.second.first->draw(program);
     }
+
+
+    // Lighting pass
+
+    // Bind the default frame buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, GL_FALSE);
+
+    // Clear color and depth buffers and resize the viewport
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width, height);
+
+    // Get the program and use it
+    std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
+    program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
+
+    // Set buffer texture uniforms
+    program->use();
+    program->setUniform("u_position_tex", 0);
+    program->setUniform("u_normal_tex",   1);
+    program->setUniform("u_ambient_tex",  2);
+    program->setUniform("u_diffuse_tex",  3);
+    program->setUniform("u_specular_tex", 4);
+
+    // Bind buffer textures
+    for (GLenum i = 0; i < TEXTURE_BUFFERS; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, Scene::buffer_texture[i]);
+    }
+
+    // Draw square
+    glBindVertexArray(Scene::square_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // Unbind square vertex array
+    glBindVertexArray(GL_FALSE);
 }
 
 
@@ -233,7 +270,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     active_camera(nullptr),
 
     // Geometry pass program ID
-    geometry_pass_id(0U) {
+    lighting_program(1U) {
     // Create window flag
     bool create_window = true;
 
@@ -302,12 +339,11 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
             // Setup the swap interval
             glfwSwapInterval(1);
 
-            // Set the clear color
-            glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
-
             // Enable depth test
             glEnable(GL_DEPTH_TEST);
 
+            // Set the clear color
+            glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
 
             // Create a empty default geometry pass program
             program_stock[0U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default geometry pass)");
@@ -323,6 +359,9 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         const GLFWvidmode *const video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         Scene::screen_width = video_mode->width;
         Scene::screen_height = video_mode->height;
+
+        // Create the square to deferred shading
+        Scene::createSquare();
 
         // Create the geometry frame buffer
         Scene::createGeometryFrameBuffer();
@@ -392,9 +431,9 @@ std::string Scene::getProgramDescription(const std::size_t &id) const {
 }
 
 
-// Get the geometry pass program ID
-std::size_t Scene::getGeometryPassProgramID() const {
-    return geometry_pass_id;
+// Get the lighting pass program ID
+std::size_t Scene::getLightingPassProgramID() const {
+    return lighting_program;
 }
 
 
@@ -497,9 +536,9 @@ bool Scene::setProgramDescription(const std::string &desc, const std::size_t &id
 }
 
 
-// Get the geometry pass program
-void Scene::setGeometryPassProgram(const std::size_t &id) {
-    geometry_pass_id = id;
+// Get the lighting pass program
+void Scene::setLightingPassProgram(const std::size_t &id) {
+    lighting_program = id;
 }
 
 
@@ -577,9 +616,6 @@ void Scene::mainLoop() {
 
     // The rendering main loop
     while (glfwWindowShouldClose(window) == GLFW_FALSE) {
-        // Clear color and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         // Draw the scene
         drawScene();
 
@@ -724,7 +760,7 @@ Scene::~Scene() {
     // If is the last instance
     if ((Scene::instances == 1U) && Scene::initialized_glad) {
         // Delete the geometry frame buffer
-        glDeleteTextures(TEXTURE_BUFFERS, Scene::texture_buffer);
+        glDeleteTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
         glDeleteRenderbuffers(1, &Scene::rbo);
         glDeleteFramebuffers(1, &Scene::fbo);
 

@@ -32,8 +32,8 @@ int main (int argc, char **argv) {
 
 
     // Add the programs
-    const std::string common_vert_shader = shader_path + "common.vert.glsl";
-    scene->setDefaultLightingPassProgram("Surface normals", common_vert_shader, shader_path + "normals.frag.glsl");
+    scene->setDefaultGeometryPassProgram("Deferred shading", shader_path + "geom_pass.vert.glsl",         shader_path + "geom_pass.frag.glsl");
+    scene->setDefaultLightingPassProgram("Surface normals",  shader_path + "light_pass_common.vert.glsl", shader_path + "lp_normals.frag.glsl");
 
     // Add the models
     std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
