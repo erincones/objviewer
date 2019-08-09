@@ -70,6 +70,9 @@ class Mouse {
         void setPressed(const bool &status);
 
 
+        /** Set the window resolution */
+        void setResolution(const int &width, const int &height);
+
         /** Set the translation point */
         void setTranslationPoint(const double &x, const double &y);
 

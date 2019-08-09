@@ -246,11 +246,11 @@ void Camera::bind(GLSLProgram *const program) const {
     program->use();
 
     // Set uniforms
-    program->setUniform("up_dir",         up);
-    program->setUniform("view_dir",       front);
-    program->setUniform("view_pos",       position);
-    program->setUniform("view_mat",       view_mat);
-    program->setUniform("projection_mat", orthogonal ? orthogonal_mat : perspective_mat);
+    program->setUniform("u_up_dir",         up);
+    program->setUniform("u_view_dir",       front);
+    program->setUniform("u_view_pos",       position);
+    program->setUniform("u_view_mat",       view_mat);
+    program->setUniform("u_projection_mat", orthogonal ? orthogonal_mat : perspective_mat);
 }
 
 
