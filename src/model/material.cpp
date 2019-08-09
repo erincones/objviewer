@@ -438,27 +438,27 @@ void Material::bind(GLSLProgram *const program) const {
     program->use();
 
     // Set color uniforms
-    program->setUniform("ambient_color",      color[0]);
-    program->setUniform("diffuse_color",      color[1]);
-    program->setUniform("specular_color",     color[2]);
-    program->setUniform("transparency_color", color[3]);
+    program->setUniform("u_ambient_color",      color[0]);
+    program->setUniform("u_diffuse_color",      color[1]);
+    program->setUniform("u_specular_color",     color[2]);
+    program->setUniform("u_transparency_color", color[3]);
 
     // Set value uniforms
-    program->setUniform("shininess",        value[0]);
-    program->setUniform("roughness",        value[1]);
-    program->setUniform("metalness",        value[2]);
-    program->setUniform("transparency",     value[3]);
-    program->setUniform("displacement",     value[4]);
-    program->setUniform("refractive_index", value[5]);
+    program->setUniform("u_shininess",        value[0]);
+    program->setUniform("u_roughness",        value[1]);
+    program->setUniform("u_metalness",        value[2]);
+    program->setUniform("u_transparency",     value[3]);
+    program->setUniform("u_displacement",     value[4]);
+    program->setUniform("u_refractive_index", value[5]);
 
     // Set texture uniforms
-    program->setUniform("ambient_tex",      0);
-    program->setUniform("diffuse_tex",      1);
-    program->setUniform("specular_tex",     2);
-    program->setUniform("shininess_tex",    3);
-    program->setUniform("normal_tex",       4);
-    program->setUniform("displacement_tex", 5);
-    program->setUniform("cube_map_tex",     6);
+    program->setUniform("u_ambient_tex",      0);
+    program->setUniform("u_diffuse_tex",      1);
+    program->setUniform("u_specular_tex",     2);
+    program->setUniform("u_shininess_tex",    3);
+    program->setUniform("u_normal_tex",       4);
+    program->setUniform("u_displacement_tex", 5);
+    program->setUniform("u_cube_map_tex",     6);
 
     // Bind textures
     Material::bindTexture(0U, (texture[0] == GL_FALSE) || !texture_enabled[0] ? Material::default_texture[2] : texture[0]);

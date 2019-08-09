@@ -362,8 +362,8 @@ void Model::draw(GLSLProgram *const program) const {
     program->use();
 
     // Set model uniforms
-    program->setUniform("model_mat", model_origin_mat);
-    program->setUniform("normal_mat", normal_mat);
+    program->setUniform("u_model_mat", model_origin_mat);
+    program->setUniform("u_normal_mat", normal_mat);
 
     // Bind the vertex array object
     glBindVertexArray(vao);
