@@ -264,7 +264,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     height(height),
 
     // Clear color
-    clear_color(0.45F, 0.55F, 0.60F),
+    clear_color(0.0F),
     
     // Active camera
     active_camera(nullptr),
@@ -393,6 +393,11 @@ glm::vec2 Scene::getResolution() const {
     return glm::vec2(width, height);
 }
 
+// Get the background color
+glm::vec3 Scene::getBackgroundColor() const {
+    return clear_color;
+}
+
 
 // Get the active camera
 Camera *Scene::getActiveCamera() const {
@@ -466,6 +471,13 @@ double Scene::getFrames() const {
 
 
 // Setters
+
+// Set the background color
+void Scene::setBackgroundColor(const glm::vec3 &color) {
+    clear_color = color;
+    glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
+}
+
 
 // Select the active camara
 bool Scene::selectCamera(const std::size_t &id) {

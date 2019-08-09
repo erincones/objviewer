@@ -165,6 +165,9 @@ class Scene {
         /** Get resolution */
         glm::vec2 getResolution() const;
 
+        /** Get the background color */
+        glm::vec3 getBackgroundColor() const;
+
 
         /** Get the active camera */
         Camera *getActiveCamera() const;
@@ -209,6 +212,10 @@ class Scene {
 
 
         // Setters
+
+        /** Set the background color */
+        void setBackgroundColor(const glm::vec3 &color);
+
 
         /** Select the active camara */
         bool selectCamera(const std::size_t &id);
