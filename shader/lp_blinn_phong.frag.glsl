@@ -55,18 +55,54 @@ void main() {
     vec3 ambient            = texture(u_ambient_tex, uv_coord).rgb;
     vec3 specular           = texture(u_specular_tex, uv_coord).rgb;
 
-    // Decompose diffuse and specular data
+    // Decompose position, diffuse and shininess data
     vec3 position   = position_shininess.rgb;
     vec3 diffuse    = diffuse_alpha.rgb;
     float shininess = position_shininess.a * u_shininess;
 
 
+    // Light direction, attenuation and intensity
+    vec3 light_dir;
+    float attenuation;
+    float intensity;
+
+    // Directional light
+    if (u_light_type == DIRECTIONAL) {
+        light_dir = u_light_direction;
+        attenuation = 1.0F;
+        intensity = 1.0F;
+    }
+
+    // Non directional light
+    else {
+        // Attenuation
+        light_dir = u_light_position - position;
+        float dist = length(light_dir);
+        attenuation = 1.0F / (u_light_attenuation.x + u_light_attenuation.y * dist + u_light_attenuation.z * dist * dist);
+
+        // Normalize the light direction
+        light_dir = normalize(light_dir);
+
+        // Spotlight intensity
+        if (u_light_type == SPOTLIGHT) {
+            float theta = dot(light_dir, u_light_direction);
+            float epsilon = u_light_cutoff.x - u_light_cutoff.y;
+            intensity = clamp((theta - u_light_cutoff.y) / epsilon, 0.0F, 1.0F);
+        }
+
+        // Non spotlight light default intensity
+        else {
+            intensity = 1.0F;
+        }
+    }
+
+
     // Lambert factor
     vec3 view_dir = normalize(u_view_pos - position);
-    float nl = max(dot(normal, u_light_direction), 0.0F);
+    float nl = max(dot(normal, light_dir), 0.0F);
 
     // Specular Blinn-Phong
-    vec3 halfway = normalize(u_light_direction + view_dir);
+    vec3 halfway = normalize(light_dir + view_dir);
     float nh = max(dot(normal, halfway), 0.0F);
     float blinn_phong = pow(nh, shininess);
 
@@ -75,23 +111,6 @@ void main() {
     ambient  *= u_ambient;
     diffuse  *= u_diffuse  * nl;
     specular *= u_specular * blinn_phong;
-
-
-    // Attenunation and intensity for non directional light
-    float attenuation = 1.0F;
-    float intensity = 1.0F;
-    if (u_light_type != DIRECTIONAL) {
-        vec3 light_dir = u_light_position - position;
-        float dist = length(light_dir);
-        attenuation /= (u_light_attenuation.x + u_light_attenuation.y * dist + u_light_attenuation.z * dist * dist);
-
-        // Spotlight intensity
-        if (u_light_type == SPOTLIGHT) {
-            float theta = dot(normalize(light_dir), u_light_direction);
-            float epsilon = u_light_cutoff.x - u_light_cutoff.y;
-            intensity = clamp((theta - u_light_cutoff.y) / epsilon, 0.0F, 1.0F);
-        }
-    }
 
 
     // Final light

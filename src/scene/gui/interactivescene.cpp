@@ -1044,34 +1044,37 @@ bool InteractiveScene::lightWidget(Light *const light) {
     ImGui::BulletText("Spacial attributes");
     ImGui::Indent();
 
-    // Direction
-    glm::vec3 vector = light->getDirection();
-    if (ImGui::DragFloat3("Direction", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
-        light->setDirection(vector);
+    // Only direction for directional lights
+    if (type == Light::DIRECTIONAL) {
+        glm::vec3 direction = light->getDirection();
+        if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setDirection(direction);
+        }
     }
 
-    // Position
-    vector = light->getPosition();
-    if (ImGui::DragFloat3("Position", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
-        light->setPosition(vector);
-    }
+    // Non directional lights
+    else {
+        // Position
+        glm::vec3 vector = light->getPosition();
+        if (ImGui::DragFloat3("Position", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setPosition(vector);
+        }
 
-    // Attenuation for non directional lights
-    if (type != Light::DIRECTIONAL) {
+        // Attenuation
         vector = light->getAttenuation();
         if (ImGui::DragFloat3("Attenuation", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
             light->setAttenuation(vector);
         }
         ImGui::HelpMarker("[Constant, Linear, Quadratic]\nIf any value is negative rare\neffects may appear.");
-    }
 
-    // Cutoff for spotlight lights
-    if (type == Light::SPOTLIGHT) {
-        glm::vec2 cutoff = light->getCutoff();
-        if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
-            light->setCutoff(cutoff);
+        // Cutoff for spotlight lights
+        if (type == Light::SPOTLIGHT) {
+            glm::vec2 cutoff = light->getCutoff();
+            if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+                light->setCutoff(cutoff);
+            }
+            ImGui::HelpMarker("[Inner, Outter]\nIf the inner cutoff is greater than the\noutter cutoff rare effects may appear.");
         }
-        ImGui::HelpMarker("[Inner, Outter]\nIf the inner cutoff is greater than the\noutter cutoff rare effects may appear.");
     }
     ImGui::Unindent();
 
@@ -1081,21 +1084,21 @@ bool InteractiveScene::lightWidget(Light *const light) {
     ImGui::Indent();
 
     // Ambient color
-    vector = light->getAmbientColor();
-    if (ImGui::ColorEdit3("Ambient", &vector.r)) {
-        light->setAmbientColor(vector);
+    glm::vec3 color = light->getAmbientColor();
+    if (ImGui::ColorEdit3("Ambient", &color.r)) {
+        light->setAmbientColor(color);
     }
 
     // Diffuse color
-    vector = light->getDiffuseColor();
-    if (ImGui::ColorEdit3("Diffuse", &vector.r)) {
-        light->setDiffuseColor(vector);
+    color = light->getDiffuseColor();
+    if (ImGui::ColorEdit3("Diffuse", &color.r)) {
+        light->setDiffuseColor(color);
     }
 
     // Specular color
-    vector = light->getSpecularColor();
-    if (ImGui::ColorEdit3("Specular", &vector.r)) {
-        light->setSpecularColor(vector);
+    color = light->getSpecularColor();
+    if (ImGui::ColorEdit3("Specular", &color.r)) {
+        light->setSpecularColor(color);
     }
     ImGui::Unindent();
 
@@ -1104,19 +1107,19 @@ bool InteractiveScene::lightWidget(Light *const light) {
     ImGui::BulletText("Color values");
     ImGui::Indent();
 
-    // Ambient color
+    // Ambient level
     float value = light->getAmbientLevel();
     if (ImGui::DragFloat("Ambient level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
         light->setAmbientLevel(value);
     }
 
-    // Diffuse color
+    // Diffuse level
     value = light->getDiffuseLevel();
     if (ImGui::DragFloat("Diffuse level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
         light->setDiffuseLevel(value);
     }
 
-    // Specular color
+    // Specular level
     value = light->getSpecularLevel();
     if (ImGui::DragFloat("Specular level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
         light->setSpecularLevel(value);
