@@ -41,6 +41,8 @@ int main (int argc, char **argv) {
     scene->setDefaultGeometryPassProgram("Deferred shading", shader_path + "geom_pass.vert.glsl", shader_path + "geom_pass.frag.glsl");
     scene->setDefaultLightingPassProgram("Surface normals",  common_lp_vert_path,                 shader_path + "lp_normals.frag.glsl");
 
+    scene->addProgram("Positions", common_lp_vert_path, shader_path + "lp_positions.frag.glsl");
+
     std::size_t program_0 = scene->addProgram("Blinn-Phong", common_lp_vert_path, shader_path + "lp_blinn_phong.frag.glsl");
     scene->setLightingPassProgram(program_0);
 
