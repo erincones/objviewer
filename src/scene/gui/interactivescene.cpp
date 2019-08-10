@@ -55,7 +55,7 @@ void InteractiveScene::mouseButtonCallback(GLFWwindow *window, int, int action, 
 
 // GLFW cursor callback
 void InteractiveScene::cursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
-    // Get the interactive scene 
+    // Get the interactive scene
     InteractiveScene *const scene = static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window));
     scene->cursor_position.x = static_cast<float>(xpos);
     scene->cursor_position.y = static_cast<float>(ypos);
@@ -86,8 +86,8 @@ void InteractiveScene::scrollCallback(GLFWwindow *window, double, double yoffset
 void InteractiveScene::keyCallback(GLFWwindow *window, int key, int, int action, int modifier) {
     // Get the pressed status
     bool pressed = action != GLFW_RELEASE;
-    
-    // Get the interactive scene 
+
+    // Get the interactive scene
     InteractiveScene *const scene = static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window));
 
     // Get the ImGuiIO reference and the capture IO status
@@ -468,7 +468,7 @@ void InteractiveScene::showMainGUIWindow() {
                 case 0U:
                     program_title = "Default geometry pass";
                     break;
-                
+
                 // Default lighting pass program
                 case 1U:
                     program_title = "Default lighting pass";
@@ -510,7 +510,7 @@ void InteractiveScene::showMainGUIWindow() {
 bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id) {
     // Keep camera flag
     bool keep = true;
-    
+
     // For non active camera
     if (id != 0U) {
         // Select active button
@@ -535,19 +535,19 @@ bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id)
     }
     ImGui::SameLine(338.0F);
     ImGui::Text("Projection");
-    
+
     // Position
     glm::vec3 value = camera->getPosition();
     if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setPosition(value);
     }
-    
+
     // Direction
     value = camera->getDirection();
     if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setDirection(value);
     }
-    
+
     // Clipping planes
     glm::vec2 clipping = camera->getClipping();
     if (ImGui::DragFloat2("Clipping", &clipping.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
@@ -576,7 +576,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
     // Get the model and program ID
     Model *const model = model_data.first;
     const std::size_t program = model_data.second;
-    
+
     // Model path
     std::string str = model->getPath();
     if (ImGui::InputText("Path", &str, ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -1033,7 +1033,7 @@ bool InteractiveScene::programComboItem(const std::size_t &current, const std::s
     if ((program != 0U) && (program != 1U)) {
         program_title.append(" (").append(std::to_string(program)).append(")");
     }
-    
+
     // Show item and get the selection status
     const bool selection = ImGui::Selectable(program_title.c_str(), selected);
 

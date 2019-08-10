@@ -43,12 +43,12 @@ class InteractiveScene : public Scene {
 
         /** Show metrics window flag */
         bool show_metrics;
-        
+
         /** Show about window flag */
         bool show_about;
 
         /** Show about ImGui window flag */
-		bool show_about_imgui;
+        bool show_about_imgui;
 
 
         /** Focus GUI flag */

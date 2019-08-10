@@ -3,6 +3,7 @@
 
 #include "camera.hpp"
 #include "../model/model.hpp"
+#include "light.hpp"
 #include "glslprogram.hpp"
 
 #include "../glad/glad.h"
@@ -46,6 +47,10 @@ class Scene {
 
         /** Model stock */
         std::map<std::size_t, std::pair<Model *, std::size_t> > model_stock;
+
+
+        /** Light stock */
+        std::map<std::size_t, Light *> light_stock;
 
 
         /** Lighting pass program ID */
@@ -152,7 +157,7 @@ class Scene {
         /** Scene constructor */
         Scene(const std::string &title, const int &width = 800, const int &height = 600, const int &context_ver_maj = 3, const int &context_ver_min = 3);
 
-        
+
         // Getters
 
         /** Get the valid status */
@@ -178,6 +183,9 @@ class Scene {
 
         /** Get model by ID */
         Model *getModel(const std::size_t &id) const;
+
+        /** Get light by ID */
+        Light *getLight(const std::size_t &id) const;
 
         /** Get the program id of a model */
         std::size_t getModelProgram(const std::size_t &id) const;
@@ -229,6 +237,10 @@ class Scene {
 
         /** Add model */
         std::size_t addModel(const std::string &path, const std::size_t &program_id = 0U);
+
+
+        /** Add light */
+        std::size_t addLight(const Light::Type &type = Light::DIRECTIONAL);
 
 
         /** Add empty GLSL program */
@@ -284,6 +296,9 @@ class Scene {
 
         /** Remove camera */
         bool removeModel(const std::size_t &id);
+
+        /** Remove light */
+        bool removeLight(const std::size_t &id);
 
         /** Remove program */
         bool removeProgram(const std::size_t &id);

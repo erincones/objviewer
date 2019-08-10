@@ -166,7 +166,7 @@ Material::Material(const std::string &name) :
 
     // Textures
     texture{GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE},
-    
+
     // Textures enabled status
     texture_enabled{true, true, true, true, true, true, true} {}
 
@@ -225,7 +225,7 @@ GLuint Material::getTexture(const Material::Attribute &attrib) const {
 
         // Cubemap
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_RIGHT:
         case Material::CUBE_MAP_LEFT:
         case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
@@ -252,7 +252,7 @@ bool Material::isTextureEnabled(const Material::Attribute &attrib) const {
 
         // Cubemap
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_RIGHT:
         case Material::CUBE_MAP_LEFT:
         case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
@@ -345,7 +345,7 @@ void Material::setTextureEnabled(const Material::Attribute &attrib, const bool &
 
         // Cubemap
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_RIGHT:
         case Material::CUBE_MAP_LEFT:
         case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
@@ -379,12 +379,12 @@ void Material::setTexturePath(const Material::Attribute &attrib, const std::stri
         case Material::CUBE_MAP_BACK:
             // Print warning message
             std::cout << "warning: using the same texture for all cube map sides, use `Material::setCubeMapTexturePath(const std::string (&path)[6])' to set each cube map path separately" << std::endl;
-            
+
             // Set the cube map texture paths
             for (int i = 6; i < 12; i++) {
                 texture_path[i] = path;
             }
-            break;  
+            break;
 
         // Invalid attribute
         default:

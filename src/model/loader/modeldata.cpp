@@ -25,12 +25,12 @@ ModelData::ModelData(const std::string &path) :
     origin_mat(1.0F),
     min(INFINITY),
     max(-INFINITY),
-    
+
     // Buffers
     vao(GL_FALSE),
     vbo(GL_FALSE),
     ebo(GL_FALSE),
-    
+
     // Statistics
     vertices(0U),
     elements(0U),

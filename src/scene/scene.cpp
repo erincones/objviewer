@@ -265,7 +265,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
 
     // Clear color
     clear_color(0.0F),
-    
+
     // Active camera
     active_camera(nullptr),
 
@@ -299,6 +299,9 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         // Create the default camera
         active_camera = new Camera(width, height);
         camera_stock[Scene::element_id++] = active_camera;
+
+        // Add one light into the light stock
+        light_stock[Scene::element_id++] = new Light();
     }
 
     // Check the window creation
@@ -417,6 +420,12 @@ Model *Scene::getModel(const std::size_t &id) const {
     return result == model_stock.end() ? nullptr : result->second.first;
 }
 
+// Get light by ID
+Light *Scene::getLight(const std::size_t &id) const {
+    std::map<std::size_t, Light *>::const_iterator result = light_stock.find(id);
+    return result == light_stock.end() ? nullptr : result->second;
+}
+
 // Get the program id of a model
 std::size_t Scene::getModelProgram(const std::size_t &id) const {
     std::map<std::size_t, std::pair<Model *, std::size_t> >::const_iterator result = model_stock.find(id);
@@ -483,7 +492,7 @@ void Scene::setBackgroundColor(const glm::vec3 &color) {
 bool Scene::selectCamera(const std::size_t &id) {
     // Find camera
     std::map<std::size_t, Camera *>::const_iterator result = camera_stock.find(id);
-    
+
     // Return false if the camera does not exists
     if (result == camera_stock.end()) {
         return false;
@@ -510,6 +519,13 @@ std::size_t Scene::addModel() {
 // Add model
 std::size_t Scene::addModel(const std::string &path, const std::size_t &program_id) {
     model_stock[Scene::element_id] = std::pair<Model *, std::size_t>(new Model(path), program_id);
+    return Scene::element_id++;
+}
+
+
+// Add light
+std::size_t Scene::addLight(const Light::Type &type) {
+    light_stock[Scene::element_id] = new Light(type);
     return Scene::element_id++;
 }
 
@@ -690,6 +706,29 @@ bool Scene::removeModel(const std::size_t &id) {
     // Delete the model
     delete result->second.first;
     model_stock.erase(result);
+
+    return true;
+}
+
+// Remove light
+bool Scene::removeLight(const std::size_t &id) {
+    // Check the light stock size
+    if (light_stock.size() == 1U) {
+        std::cerr << "error: the light stock could not be empty" << std::endl;
+        return false;
+    }
+
+    // Search the light
+    std::map<std::size_t, Light *>::const_iterator result = light_stock.find(id);
+
+    // Return false if the light does not exists
+    if (result == light_stock.end()) {
+        return false;
+    }
+
+    // Delete the light
+    delete result->second;
+    light_stock.erase(result);
 
     return true;
 }

@@ -14,7 +14,7 @@
 class Material {
     public:
         // Enumerations
-        
+
         /** Attributes */
         enum Attribute : GLenum {
             /** Ambient component */
@@ -80,21 +80,21 @@ class Material {
 
 
         /** Colors */
-		glm::vec3 color[4];
+        glm::vec3 color[4];
 
 
         /** Value */
-		float value[6];
+        float value[6];
 
 
         /** Texture */
-		GLuint texture[7];
+        GLuint texture[7];
 
         /** Texture enabled status */
         bool texture_enabled[7];
 
         /** Texture path */
-		std::string texture_path[12];
+        std::string texture_path[12];
 
 
         // Constructors
@@ -118,7 +118,7 @@ class Material {
         // Static attributes
 
         /** Default texture */
-		static GLuint default_texture[3];
+        static GLuint default_texture[3];
 
 
         // Static methods
