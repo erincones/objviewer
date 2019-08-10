@@ -281,11 +281,7 @@ void InteractiveScene::showMainGUIWindow() {
             ImGui::Text("Frames:  %.3fE3", kframes);
             ImGui::Text("Mouse: %.0f, %.0f", cursor_position.x, cursor_position.y);
             ImGui::HelpMarker("[x, y]");
-            ImGui::Spacing();
-            // Background color
-            if (ImGui::ColorEdit3("Background", &clear_color.r)) {
-                glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
-            }
+            ImGui::ColorEdit3("Background", &background_color.r);
             ImGui::TreePop();
         }
 

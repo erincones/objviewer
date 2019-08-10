@@ -234,8 +234,11 @@ void Scene::drawScene() {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
     program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
 
-    // Set buffer texture uniforms
+    // Set the brackground color
     program->use();
+    program->setUniform("u_background_color", background_color);
+
+    // Set buffer texture uniforms
     program->setUniform("u_position_tex", 0);
     program->setUniform("u_normal_tex",   1);
     program->setUniform("u_ambient_tex",  2);
@@ -276,7 +279,7 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     height(height),
 
     // Clear color
-    clear_color(0.0F),
+    background_color(0.0F),
 
     // Active camera
     active_camera(nullptr),
@@ -357,9 +360,6 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
             // Enable depth test
             glEnable(GL_DEPTH_TEST);
 
-            // Set the clear color
-            glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
-
             // Create a empty default geometry pass program
             program_stock[0U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default geometry pass)");
 
@@ -410,7 +410,7 @@ glm::vec2 Scene::getResolution() const {
 
 // Get the background color
 glm::vec3 Scene::getBackgroundColor() const {
-    return clear_color;
+    return background_color;
 }
 
 
@@ -495,8 +495,7 @@ double Scene::getFrames() const {
 
 // Set the background color
 void Scene::setBackgroundColor(const glm::vec3 &color) {
-    clear_color = color;
-    glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
+    background_color = color;
 }
 
 

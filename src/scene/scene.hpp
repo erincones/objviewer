@@ -34,8 +34,8 @@ class Scene {
         int height;
 
 
-        /** Clear color */
-        glm::vec3 clear_color;
+        /** Background color */
+        glm::vec3 background_color;
 
 
         /** Active camera */

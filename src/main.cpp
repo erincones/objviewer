@@ -2,6 +2,8 @@
 
 #include "dirsep.h"
 
+#include <glm/vec3.hpp>
+
 #include <iostream>
 
 
@@ -21,6 +23,9 @@ int main (int argc, char **argv) {
         delete scene;
         return 1;
     }
+
+    // Set the background color
+    scene->setBackgroundColor(glm::vec3(0.45F, 0.55F, 0.60F));
 
 
     // Setup directories
