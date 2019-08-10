@@ -51,8 +51,8 @@ GLuint GLSLProgram::compileShaderFile(const std::string &path, const GLenum &typ
     }
 
     // Read the source code from file and close it
-	const std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	file.close();
+    const std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
 
     // Compile the shader
     GLuint shader = GLSLProgram::compileShaderSource(source.c_str(), type);
@@ -97,7 +97,7 @@ GLuint GLSLProgram::compileShaderSource(const GLchar *const &source, const GLenu
             // Get the information log data
             GLchar *log = new GLchar[length];
             glGetShaderInfoLog(shader, length, nullptr, log);
-            
+
             // Print the information log data
             std::cerr << log;
             delete[] log;
@@ -127,7 +127,7 @@ GLSLProgram::GLSLProgram() :
 GLSLProgram::GLSLProgram(const std::string &vert, const std::string &frag) :
     // Program
     program(GL_FALSE),
-    
+
     // Shaders source paths
     vert_path(vert),
     frag_path(frag),
@@ -142,7 +142,7 @@ GLSLProgram::GLSLProgram(const std::string &vert, const std::string &frag) :
 GLSLProgram::GLSLProgram(const std::string &vert, const std::string &geom, const std::string &frag) :
     // Program
     program(GL_FALSE),
-    
+
     // Shaders source paths
     vert_path(vert),
     geom_path(geom),
@@ -174,7 +174,7 @@ std::string GLSLProgram::getShaderPath(const GLenum &type) const {
         case GL_VERTEX_SHADER:   return vert_path;
         case GL_GEOMETRY_SHADER: return geom_path;
         case GL_FRAGMENT_SHADER: return frag_path;
-        
+
         // Non available shaders
         case GL_COMPUTE_SHADER:
             std::cerr << "error: the compute shader is not available for this GLSLProgram class implementation" << std::endl;
@@ -284,7 +284,7 @@ void GLSLProgram::link() {
     if (mandatory_empty) {
         return;
     }
-    
+
     // Compile the vertex shader
     const GLuint vert = GLSLProgram::compileShaderFile(vert_path, GL_VERTEX_SHADER);
     if (vert == GL_FALSE) {
@@ -305,7 +305,7 @@ void GLSLProgram::link() {
         glDeleteShader(frag);
         return;
     }
-    
+
     // Create the new program object
     program = glCreateProgram();
     if (program == GL_FALSE) {
@@ -348,7 +348,7 @@ void GLSLProgram::link() {
             // Get the information log data
             GLchar *log = new GLchar[length];
             glGetProgramInfoLog(program, length, nullptr, log);
-            
+
             // Print the information log data
             std::cerr << log;
             delete[] log;

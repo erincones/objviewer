@@ -39,7 +39,7 @@ class ModelData {
             Object(const GLsizei &count = 0, const GLsizei &offset = 0, Material *const material = nullptr);
         };
 
-        
+
         // Attributes
 
         /** Model path */

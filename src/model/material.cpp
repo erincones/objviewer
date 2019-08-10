@@ -162,11 +162,11 @@ Material::Material(const std::string &name) :
     color{glm::vec3(0.0F), glm::vec3(1.0F), glm::vec3(0.125F), glm::vec3(1.0F)},
 
     // Values
-    value{10.0F, 0.3F, 0.1F, 0.0F, 0.05, 1.0F},
+    value{96.078431F, 0.3F, 0.1F, 0.0F, 0.05, 1.0F},
 
     // Textures
     texture{GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE},
-    
+
     // Textures enabled status
     texture_enabled{true, true, true, true, true, true, true} {}
 
@@ -216,7 +216,7 @@ float Material::getValue(const Material::Attribute &attrib) const {
 GLuint Material::getTexture(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return texture by attribute
-        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[2] : texture[0];
+        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[0] : texture[0];
         case Material::DIFFUSE:      return texture[1] == GL_FALSE ? Material::default_texture[0] : texture[1];
         case Material::SPECULAR:     return texture[2] == GL_FALSE ? Material::default_texture[0] : texture[2];
         case Material::SHININESS:    return texture[3] == GL_FALSE ? Material::default_texture[0] : texture[3];
@@ -225,7 +225,7 @@ GLuint Material::getTexture(const Material::Attribute &attrib) const {
 
         // Cubemap
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_RIGHT:
         case Material::CUBE_MAP_LEFT:
         case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
@@ -252,7 +252,7 @@ bool Material::isTextureEnabled(const Material::Attribute &attrib) const {
 
         // Cubemap
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_RIGHT:
         case Material::CUBE_MAP_LEFT:
         case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
@@ -345,7 +345,7 @@ void Material::setTextureEnabled(const Material::Attribute &attrib, const bool &
 
         // Cubemap
         case Material::CUBE_MAP:
-        case Material::CUBE_MAP_RIGHT: 
+        case Material::CUBE_MAP_RIGHT:
         case Material::CUBE_MAP_LEFT:
         case Material::CUBE_MAP_TOP:
         case Material::CUBE_MAP_BOTTOM:
@@ -379,12 +379,12 @@ void Material::setTexturePath(const Material::Attribute &attrib, const std::stri
         case Material::CUBE_MAP_BACK:
             // Print warning message
             std::cout << "warning: using the same texture for all cube map sides, use `Material::setCubeMapTexturePath(const std::string (&path)[6])' to set each cube map path separately" << std::endl;
-            
+
             // Set the cube map texture paths
             for (int i = 6; i < 12; i++) {
                 texture_path[i] = path;
             }
-            break;  
+            break;
 
         // Invalid attribute
         default:
@@ -438,10 +438,10 @@ void Material::bind(GLSLProgram *const program) const {
     program->use();
 
     // Set color uniforms
-    program->setUniform("u_ambient_color",      color[0]);
-    program->setUniform("u_diffuse_color",      color[1]);
-    program->setUniform("u_specular_color",     color[2]);
-    program->setUniform("u_transparency_color", color[3]);
+    program->setUniform("u_ambient",      color[0]);
+    program->setUniform("u_diffuse",      color[1]);
+    program->setUniform("u_specular",     color[2]);
+    program->setUniform("u_transparency", color[3]);
 
     // Set value uniforms
     program->setUniform("u_shininess",        value[0]);
@@ -461,7 +461,7 @@ void Material::bind(GLSLProgram *const program) const {
     program->setUniform("u_cube_map_tex",     6);
 
     // Bind textures
-    Material::bindTexture(0U, (texture[0] == GL_FALSE) || !texture_enabled[0] ? Material::default_texture[2] : texture[0]);
+    Material::bindTexture(0U, (texture[0] == GL_FALSE) || !texture_enabled[0] ? Material::default_texture[0] : texture[0]);
     Material::bindTexture(1U, (texture[1] == GL_FALSE) || !texture_enabled[1] ? Material::default_texture[0] : texture[1]);
     Material::bindTexture(2U, (texture[2] == GL_FALSE) || !texture_enabled[2] ? Material::default_texture[0] : texture[2]);
     Material::bindTexture(3U, (texture[3] == GL_FALSE) || !texture_enabled[3] ? Material::default_texture[0] : texture[3]);

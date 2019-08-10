@@ -43,12 +43,12 @@ class InteractiveScene : public Scene {
 
         /** Show metrics window flag */
         bool show_metrics;
-        
+
         /** Show about window flag */
         bool show_about;
 
         /** Show about ImGui window flag */
-		bool show_about_imgui;
+        bool show_about_imgui;
 
 
         /** Focus GUI flag */
@@ -71,6 +71,9 @@ class InteractiveScene : public Scene {
         /** Draw the model widget */
         bool modelWidget(std::pair<Model *, std::size_t> &model_data);
 
+        /** Draw the light widget */
+        bool lightWidget(Light *const light);
+
         /** Draw the program widget */
         bool programWidget(std::pair<GLSLProgram *, std::string> &program_data);
 
@@ -86,6 +89,9 @@ class InteractiveScene : public Scene {
 
         /** Available texures */
         static const std::map<Material::Attribute, std::string> AVAILABLE_TEXTURE;
+
+        /** Types of lights labels */
+        static const char *LIGHT_TYPE_LABEL[];
 
 
         // Static attributes

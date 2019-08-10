@@ -65,8 +65,8 @@ void Scene::createGeometryFrameBuffer() {
     // Generate the texture buffers and attach each one
     glGenTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
 
-    // Position texture buffer
-    Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
+    // Position and shininess texture buffer
+    Scene::attachTextureToFrameBuffer(0, GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
     // Normal and displacement texture buffer
     Scene::attachTextureToFrameBuffer(1, GL_RGBA16F, GL_RGBA, GL_FLOAT);
@@ -77,8 +77,8 @@ void Scene::createGeometryFrameBuffer() {
     // Diffuse and alpha texture buffer
     Scene::attachTextureToFrameBuffer(3, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 
-    // Specular and shininess texture buffer
-    Scene::attachTextureToFrameBuffer(4, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+    // Specular texture buffer
+    Scene::attachTextureToFrameBuffer(4, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 
 
     // Color attachments to use
@@ -222,6 +222,10 @@ void Scene::drawScene() {
     // Bind the default frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, GL_FALSE);
 
+    // Enable the blend option
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
     // Clear color and depth buffers and resize the viewport
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height);
@@ -230,8 +234,12 @@ void Scene::drawScene() {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
     program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
 
-    // Set buffer texture uniforms
+    // Set the brackground color and view position
     program->use();
+    program->setUniform("u_background_color", background_color);
+    program->setUniform("u_view_pos", active_camera->getPosition());
+
+    // Set buffer texture uniforms
     program->setUniform("u_position_tex", 0);
     program->setUniform("u_normal_tex",   1);
     program->setUniform("u_ambient_tex",  2);
@@ -244,12 +252,20 @@ void Scene::drawScene() {
         glBindTexture(GL_TEXTURE_2D, Scene::buffer_texture[i]);
     }
 
-    // Draw square
+    // Bind the square vertex array object
     glBindVertexArray(Scene::square_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // For each light
+    for (const std::pair<const std::size_t, const Light *const> &light_data : light_stock) {
+        light_data.second->bind(program);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 
     // Unbind square vertex array
     glBindVertexArray(GL_FALSE);
+
+    // Disable the blend option
+    glDisable(GL_BLEND);
 }
 
 
@@ -264,8 +280,8 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
     height(height),
 
     // Clear color
-    clear_color(0.45F, 0.55F, 0.60F),
-    
+    background_color(0.0F),
+
     // Active camera
     active_camera(nullptr),
 
@@ -299,6 +315,9 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
         // Create the default camera
         active_camera = new Camera(width, height);
         camera_stock[Scene::element_id++] = active_camera;
+
+        // Add one light into the light stock
+        light_stock[Scene::element_id++] = new Light();
     }
 
     // Check the window creation
@@ -341,9 +360,6 @@ Scene::Scene(const std::string &title, const int &width, const int &height, cons
 
             // Enable depth test
             glEnable(GL_DEPTH_TEST);
-
-            // Set the clear color
-            glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
 
             // Create a empty default geometry pass program
             program_stock[0U] = std::pair<GLSLProgram *, std::string>(new GLSLProgram(), "Empty (Default geometry pass)");
@@ -393,6 +409,11 @@ glm::vec2 Scene::getResolution() const {
     return glm::vec2(width, height);
 }
 
+// Get the background color
+glm::vec3 Scene::getBackgroundColor() const {
+    return background_color;
+}
+
 
 // Get the active camera
 Camera *Scene::getActiveCamera() const {
@@ -410,6 +431,12 @@ Camera *Scene::getCamera(const std::size_t &id) const {
 Model *Scene::getModel(const std::size_t &id) const {
     std::map<std::size_t, std::pair<Model *, std::size_t> >::const_iterator result = model_stock.find(id);
     return result == model_stock.end() ? nullptr : result->second.first;
+}
+
+// Get light by ID
+Light *Scene::getLight(const std::size_t &id) const {
+    std::map<std::size_t, Light *>::const_iterator result = light_stock.find(id);
+    return result == light_stock.end() ? nullptr : result->second;
 }
 
 // Get the program id of a model
@@ -467,11 +494,17 @@ double Scene::getFrames() const {
 
 // Setters
 
+// Set the background color
+void Scene::setBackgroundColor(const glm::vec3 &color) {
+    background_color = color;
+}
+
+
 // Select the active camara
 bool Scene::selectCamera(const std::size_t &id) {
     // Find camera
     std::map<std::size_t, Camera *>::const_iterator result = camera_stock.find(id);
-    
+
     // Return false if the camera does not exists
     if (result == camera_stock.end()) {
         return false;
@@ -498,6 +531,13 @@ std::size_t Scene::addModel() {
 // Add model
 std::size_t Scene::addModel(const std::string &path, const std::size_t &program_id) {
     model_stock[Scene::element_id] = std::pair<Model *, std::size_t>(new Model(path), program_id);
+    return Scene::element_id++;
+}
+
+
+// Add light
+std::size_t Scene::addLight(const Light::Type &type) {
+    light_stock[Scene::element_id] = new Light(type);
     return Scene::element_id++;
 }
 
@@ -678,6 +718,29 @@ bool Scene::removeModel(const std::size_t &id) {
     // Delete the model
     delete result->second.first;
     model_stock.erase(result);
+
+    return true;
+}
+
+// Remove light
+bool Scene::removeLight(const std::size_t &id) {
+    // Check the light stock size
+    if (light_stock.size() == 1U) {
+        std::cerr << "error: the light stock could not be empty" << std::endl;
+        return false;
+    }
+
+    // Search the light
+    std::map<std::size_t, Light *>::const_iterator result = light_stock.find(id);
+
+    // Return false if the light does not exists
+    if (result == light_stock.end()) {
+        return false;
+    }
+
+    // Delete the light
+    delete result->second;
+    light_stock.erase(result);
 
     return true;
 }

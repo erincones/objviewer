@@ -84,10 +84,10 @@ ModelData *ModelLoader::load(const std::string &path, const ModelLoader::Format 
     // Create a null model loader
     ModelLoader *loader = nullptr;
 
-    // Instanciate the loader 
+    // Instanciate the loader
     switch (format) {
         case OBJ: loader = static_cast<ModelLoader *>(new OBJLoader(path)); break;
-        
+
         // Return empty model data if the format is unknown
         default:
             std::cerr << "error: unknown model loader format `" << format << "'" << std::endl;
