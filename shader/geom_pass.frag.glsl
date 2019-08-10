@@ -9,6 +9,11 @@ layout (location = 4) out vec4 l_specular;
 
 
 // Uniform variables
+uniform vec3 u_material_ambient;
+uniform vec3 u_material_diffuse;
+uniform vec3 u_material_specular;
+uniform float u_material_shininess;
+
 uniform sampler2D u_ambient_tex;
 uniform sampler2D u_diffuse_tex;
 uniform sampler2D u_specular_tex;
@@ -33,12 +38,13 @@ void main () {
     l_normal.a = 0.0F;
 
     // Ambient color
-    l_ambient = texture(u_ambient_tex, vertex.uv_coord).rgb;
+    l_ambient = texture(u_ambient_tex, vertex.uv_coord).rgb * u_material_ambient;
 
     // Diffuse color
     l_diffuse = texture(u_diffuse_tex, vertex.uv_coord);
+    l_diffuse.rgb *= u_material_diffuse;
 
     // Specular color
-    l_specular.rgb = texture(u_diffuse_tex, vertex.uv_coord).rgb;
-    l_specular.a = texture(u_shininess_tex, vertex.uv_coord).a;
+    l_specular.rgb = texture(u_diffuse_tex, vertex.uv_coord).rgb * u_material_specular;
+    l_specular.a   = texture(u_shininess_tex, vertex.uv_coord).a * u_material_shininess;
 }

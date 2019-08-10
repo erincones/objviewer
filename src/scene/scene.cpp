@@ -222,6 +222,10 @@ void Scene::drawScene() {
     // Bind the default frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, GL_FALSE);
 
+    // Enable the blend option
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
     // Clear color and depth buffers and resize the viewport
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height);
@@ -244,12 +248,20 @@ void Scene::drawScene() {
         glBindTexture(GL_TEXTURE_2D, Scene::buffer_texture[i]);
     }
 
-    // Draw square
+    // Bind the square vertex array object
     glBindVertexArray(Scene::square_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // For each light
+    for (const std::pair<const std::size_t, const Light *const> &light_data : light_stock) {
+        light_data.second->bind(program);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 
     // Unbind square vertex array
     glBindVertexArray(GL_FALSE);
+
+    // Disable the blend option
+    glDisable(GL_BLEND);
 }
 
 
