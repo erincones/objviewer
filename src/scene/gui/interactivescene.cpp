@@ -67,9 +67,18 @@ void InteractiveScene::cursorPosCallback(GLFWwindow *window, double xpos, double
     ImGuiIO &io = ImGui::GetIO();
     const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 
-    // Rotate the active camera if the cursor is disabled and the GUI don't want to capture IO or the main GUI window is not visible
+    // If the cursor is disabled and the GUI don't want to capture IO or the main GUI window is not visible
     if ((io.ConfigFlags & ImGuiConfigFlags_NoMouse) && (!capture_io || !scene->show_main_gui)) {
+        // Rotate the active camera
         scene->active_camera->rotate(scene->mouse->translate(xpos, ypos));
+
+        // Update the grabbed lights direction
+        const glm::vec3 direction = scene->active_camera->getDirection();
+        for (std::pair<const std::size_t, Light *> &light_data : scene->light_stock) {
+            if (light_data.second->isGrabbed()) {
+                light_data.second->setDirection(direction);
+            }
+        }
     }
 }
 
@@ -1044,8 +1053,8 @@ bool InteractiveScene::lightWidget(Light *const light) {
     ImGui::BulletText("Spacial attributes");
     ImGui::Indent();
 
-    // Only direction for directional lights
-    if (type == Light::DIRECTIONAL) {
+    // Light direction for non point light
+    if (type != Light::POINT) {
         glm::vec3 direction = light->getDirection();
         if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
             light->setDirection(direction);
@@ -1053,7 +1062,7 @@ bool InteractiveScene::lightWidget(Light *const light) {
     }
 
     // Non directional lights
-    else {
+    if (type != Light::DIRECTIONAL) {
         // Position
         glm::vec3 vector = light->getPosition();
         if (ImGui::DragFloat3("Position", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
@@ -1242,6 +1251,13 @@ void InteractiveScene::processKeyboardInput() {
     if (glfwGetKey(window, GLFW_KEY_SPACE) || glfwGetKey(window, GLFW_KEY_UP))    active_camera->travell(Camera::UP);
     if (glfwGetKey(window, GLFW_KEY_C)     || glfwGetKey(window, GLFW_KEY_DOWN))  active_camera->travell(Camera::DOWN);
 
+    // Update the grabbed lights positions
+    const glm::vec3 position = active_camera->getPosition();
+    for (std::pair<const std::size_t, Light *> &light_data : light_stock) {
+        if (light_data.second->isGrabbed()) {
+            light_data.second->setPosition(position);
+        }
+    }
 }
 
 

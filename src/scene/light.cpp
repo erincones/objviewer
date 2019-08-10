@@ -204,13 +204,13 @@ void Light::bind(GLSLProgram *const program) const {
     if (enabled) {
         program->setUniform("u_light_type", type);
 
-        // Directional light
-        if (type == Light::DIRECTIONAL) {
+        // Non point light
+        if (type != Light::POINT) {
             program->setUniform("u_light_direction", direction);
         }
 
         // Non directional light
-        else {
+        if (type != Light::DIRECTIONAL) {
             program->setUniform("u_light_position",    position);
             program->setUniform("u_light_attenuation", attenuation);
             if (type == Light::SPOTLIGHT) {
