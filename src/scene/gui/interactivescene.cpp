@@ -67,8 +67,8 @@ void InteractiveScene::cursorPosCallback(GLFWwindow *window, double xpos, double
     ImGuiIO &io = ImGui::GetIO();
     const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 
-    // Rotate the active camera if  the GUI don't want to capture IO and the main GUI window is not visible
-    if (!capture_io || !scene->show_main_gui) {
+    // Rotate the active camera if the cursor is disabled and the GUI don't want to capture IO or the main GUI window is not visible
+    if ((io.ConfigFlags & ImGuiConfigFlags_NoMouse) && (!capture_io || !scene->show_main_gui)) {
         scene->active_camera->rotate(scene->mouse->translate(xpos, ypos));
     }
 }
@@ -352,11 +352,17 @@ void InteractiveScene::showMainGUIWindow() {
             if (ImGui::DragFloat("Sensibility", &value, 0.25F, 0.0F, 0.0F, "%.4f")) {
                 Camera::setSensibility(value);
             }
+            // Speed
+            value = Camera::getSpeed();
+            if (ImGui::DragFloat("Speed", &value, 0.005F, 0.0F, FLT_MAX, "%.4f")) {
+                Camera::setSpeed(value);
+            }
             // Boost speed
             value = Camera::getBoostedSpeed();
-            if (ImGui::DragFloat("Boost speed", &value, 0.05F, 0.0F, 0.0F, "%.4f")) {
+            if (ImGui::DragFloat("Boost speed", &value, 0.05F, 0.0F, FLT_MAX, "%.4f")) {
                 Camera::setBoostedSpeed(value);
             }
+            ImGui::HelpMarker("The boost speed is expected to be\ngreater than the normal speed.");
             ImGui::TreePop();
         }
 
@@ -1069,7 +1075,7 @@ bool InteractiveScene::lightWidget(Light *const light) {
         if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
             light->setCutoff(cutoff);
         }
-        ImGui::HelpMarker("[Inner, Outter]\nIf the inner cutoff is greatter than the\noutter cutoff rare effects may appear.");
+        ImGui::HelpMarker("[Inner, Outter]\nIf the inner cutoff is greater than the\noutter cutoff rare effects may appear.");
     }
     ImGui::Unindent();
 
