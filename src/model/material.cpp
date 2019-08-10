@@ -216,7 +216,7 @@ float Material::getValue(const Material::Attribute &attrib) const {
 GLuint Material::getTexture(const Material::Attribute &attrib) const {
     switch (attrib) {
         // Return texture by attribute
-        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[2] : texture[0];
+        case Material::AMBIENT:      return texture[0] == GL_FALSE ? Material::default_texture[0] : texture[0];
         case Material::DIFFUSE:      return texture[1] == GL_FALSE ? Material::default_texture[0] : texture[1];
         case Material::SPECULAR:     return texture[2] == GL_FALSE ? Material::default_texture[0] : texture[2];
         case Material::SHININESS:    return texture[3] == GL_FALSE ? Material::default_texture[0] : texture[3];
@@ -461,7 +461,7 @@ void Material::bind(GLSLProgram *const program) const {
     program->setUniform("u_cube_map_tex",     6);
 
     // Bind textures
-    Material::bindTexture(0U, (texture[0] == GL_FALSE) || !texture_enabled[0] ? Material::default_texture[2] : texture[0]);
+    Material::bindTexture(0U, (texture[0] == GL_FALSE) || !texture_enabled[0] ? Material::default_texture[0] : texture[0]);
     Material::bindTexture(1U, (texture[1] == GL_FALSE) || !texture_enabled[1] ? Material::default_texture[0] : texture[1]);
     Material::bindTexture(2U, (texture[2] == GL_FALSE) || !texture_enabled[2] ? Material::default_texture[0] : texture[2]);
     Material::bindTexture(3U, (texture[3] == GL_FALSE) || !texture_enabled[3] ? Material::default_texture[0] : texture[3]);
