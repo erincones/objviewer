@@ -27,6 +27,9 @@ class Light {
         /** Enabled status */
         bool enabled;
 
+        /** Grabbed status */
+        bool grabbed;
+
 
         /** Type */
         Light::Type type;
@@ -80,6 +83,10 @@ class Light {
         /** Get the enabled status */
         bool isEnabled() const;
 
+        /** Get the grabbed status */
+        bool isGrabbed() const;
+
+
         /** Get the type */
         Light::Type getType() const;
 
@@ -124,6 +131,10 @@ class Light {
 
         /** Set the enabled status */
         void setEnabled(const bool &status);
+
+        /** Set the grabbed status */
+        void setGrabbed(const bool &status);
+
 
         /** Set the type */
         void setType(const Light::Type &new_type);

@@ -7,6 +7,10 @@
 
 // Light constructor
 Light::Light(const Light::Type &type) :
+    // Default statuses
+    enabled(true),
+    grabbed(false),
+
     // Type
     type(type),
 
@@ -37,6 +41,12 @@ bool Light::isEnabled() const {
     return enabled;
 }
 
+// Get the grabbed status
+bool Light::isGrabbed() const {
+    return grabbed;
+}
+
+
 // Get the type
 Light::Type Light::getType() const {
     return type;
@@ -60,7 +70,7 @@ glm::vec3 Light::getAttenuation() const {
 
 // Get cutoff
 glm::vec2 Light::getCutoff() const {
-    return cutoff;
+    return glm::degrees(cutoff);
 }
 
 
@@ -108,6 +118,12 @@ void Light::setEnabled(const bool &status) {
     enabled = status;
 }
 
+// Set the grabbed status
+void Light::setGrabbed(const bool &status) {
+    grabbed = status;
+}
+
+
 // Set the type
 void Light::setType(const Light::Type &new_type) {
     type = new_type;
@@ -116,7 +132,7 @@ void Light::setType(const Light::Type &new_type) {
 
 // Set the direction
 void Light::setDirection(const glm::vec3 &new_direction) {
-    direction = new_direction;
+    direction = glm::normalize(new_direction);
 }
 
 // Set the position
@@ -131,7 +147,7 @@ void Light::setAttenuation(const glm::vec3 &new_attenuation) {
 
 // Set cutoff
 void Light::setCutoff(const glm::vec2 &new_cutoff) {
-    cutoff = new_cutoff;
+    cutoff = glm::radians(new_cutoff);
 }
 
 
