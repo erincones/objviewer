@@ -23,6 +23,9 @@ const std::map<Material::Attribute, std::string> InteractiveScene::AVAILABLE_TEX
     {Material::DISPLACEMENT, "Displacement"}
 };
 
+//Types of lights labels
+const char *InteractiveScene::LIGHT_TYPE_LABEL[] = {"Directional", "Point", "Spotlight"};
+
 
 // Private static attributes
 
@@ -203,7 +206,7 @@ void InteractiveScene::showMainGUIWindow() {
     // Setup style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
     ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(470.0F, static_cast<float>(height)), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(501.0F, static_cast<float>(height)), ImGuiCond_Always);
 
     // Create the main GUI window
     const bool open = ImGui::Begin("Settings", &show_main_gui, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
@@ -277,7 +280,7 @@ void InteractiveScene::showMainGUIWindow() {
             ImGui::SameLine(210.0F);
             ImGui::Text("Frames:  %.3fE3", kframes);
             ImGui::Text("Mouse: %.0f, %.0f", cursor_position.x, cursor_position.y);
-            ImGui::HelpMarker("(x, y)");
+            ImGui::HelpMarker("[x, y]");
             ImGui::Spacing();
             // Background color
             if (ImGui::ColorEdit3("Background", &clear_color.r)) {
@@ -423,6 +426,39 @@ void InteractiveScene::showMainGUIWindow() {
         ImGui::Spacing();
         if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F))) {
             addModel();
+        }
+        ImGui::Spacing();
+    }
+
+    // Lights section
+    if (ImGui::CollapsingHeader("Lights")) {
+        // Program to remove ID
+        std::size_t remove = 0U;
+
+        // Draw each light node
+        for (const std::pair<const std::size_t, Light *const> &light_data : light_stock) {
+            // ID and title strings
+            const std::string id = std::to_string(light_data.first);
+            const std::string light_title = "Light " + id;
+
+            // Draw node and catch the selected to remove
+            if (ImGui::TreeNode(id.c_str(), light_title.c_str())) {
+                if (!lightWidget(light_data.second)) {
+                    remove = light_data.first;
+                }
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove light
+        if (remove != 0U) {
+            removeLight(remove);
+        }
+
+        // Add light button
+        ImGui::Spacing();
+        if (ImGui::Button("Add light", ImVec2(454.0F, 19.0F))) {
+            addLight();
         }
         ImGui::Spacing();
     }
@@ -957,11 +993,149 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
     return keep;
 }
 
+// Draw the light widget
+bool InteractiveScene::lightWidget(Light *const light) {
+    // Keep light flag
+    bool keep = true;
+
+    // Type combo
+    Light::Type type = light->getType();
+    if (ImGui::BeginCombo("Type", InteractiveScene::LIGHT_TYPE_LABEL[type])) {
+        for (GLint i = Light::DIRECTIONAL; i <= Light::SPOTLIGHT; i++) {
+            // Selected status
+            const Light::Type new_type = static_cast<Light::Type>(i);
+            bool selected = type == new_type;
+
+            // Show item and select
+            if (ImGui::Selectable(InteractiveScene::LIGHT_TYPE_LABEL[new_type], selected)) {
+                light->setType(new_type);
+            }
+
+            // Set default focus to selected
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    // Enabled checkbox
+    bool status = light->isEnabled();
+    if (ImGui::Checkbox("Enabled", &status)) {
+        light->setEnabled(status);
+    }
+    // Grabed checkbox for spotlight lights
+    if (type == Light::SPOTLIGHT) {
+        status = light->isGrabbed();
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Grabbed", &status)) {
+            light->setGrabbed(status);
+        }
+    }
+    // Remove button if there are more than one light in the stock
+    if (light_stock.size() > 1U) {
+        keep = !ImGui::RemoveButton();
+    }
+
+
+    // Space attributes
+    ImGui::BulletText("Spacial attributes");
+    ImGui::Indent();
+
+    // Direction
+    glm::vec3 vector = light->getDirection();
+    if (ImGui::DragFloat3("Direction", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+        light->setDirection(vector);
+    }
+
+    // Position
+    vector = light->getPosition();
+    if (ImGui::DragFloat3("Position", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+        light->setPosition(vector);
+    }
+
+    // Attenuation for non directional lights
+    if (type != Light::DIRECTIONAL) {
+        vector = light->getAttenuation();
+        if (ImGui::DragFloat3("Attenuation", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setAttenuation(vector);
+        }
+        ImGui::HelpMarker("[Constant, Linear, Quadratic]\nIf any value is negative rare\neffects may appear.");
+    }
+
+    // Cutoff for spotlight lights
+    if (type == Light::SPOTLIGHT) {
+        glm::vec2 cutoff = light->getCutoff();
+        if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setCutoff(cutoff);
+        }
+        ImGui::HelpMarker("[Inner, Outter]\nIf the inner cutoff is greatter than the\noutter cutoff rare effects may appear.");
+    }
+    ImGui::Unindent();
+
+
+    // Color attributes
+    ImGui::BulletText("Color attributes");
+    ImGui::Indent();
+
+    // Ambient color
+    vector = light->getAmbientColor();
+    if (ImGui::ColorEdit3("Ambient", &vector.r)) {
+        light->setAmbientColor(vector);
+    }
+
+    // Diffuse color
+    vector = light->getDiffuseColor();
+    if (ImGui::ColorEdit3("Diffuse", &vector.r)) {
+        light->setDiffuseColor(vector);
+    }
+
+    // Specular color
+    vector = light->getSpecularColor();
+    if (ImGui::ColorEdit3("Specular", &vector.r)) {
+        light->setSpecularColor(vector);
+    }
+    ImGui::Unindent();
+
+
+    // Colors levels
+    ImGui::BulletText("Color values");
+    ImGui::Indent();
+
+    // Ambient color
+    float value = light->getAmbientLevel();
+    if (ImGui::DragFloat("Ambient level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
+        light->setAmbientLevel(value);
+    }
+
+    // Diffuse color
+    value = light->getDiffuseLevel();
+    if (ImGui::DragFloat("Diffuse level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
+        light->setDiffuseLevel(value);
+    }
+
+    // Specular color
+    value = light->getSpecularLevel();
+    if (ImGui::DragFloat("Specular level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
+        light->setSpecularLevel(value);
+    }
+
+    // Shininess
+    value = light->getShininess();
+    if (ImGui::DragFloat("Shininess", &value, 0.0025F, 0.0F, 0.0F, "%.4f")) {
+        light->setShininess(value);
+    }
+    ImGui::HelpMarker("If the shininess value negative\nrare effects may appear.");
+    ImGui::Unindent();
+
+    // Return the keep light value
+    return keep;
+}
+
 // Draw the program widget
 bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &program_data) {
     // Keep program flag
     bool keep = true;
-
 
     // Get the program and shader paths
     GLSLProgram *const program = program_data.first;
@@ -1019,7 +1193,7 @@ bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &prog
     // Separator for open nodes
     ImGui::Separator();
 
-    // Return the keep model value
+    // Return the keep program value
     return keep;
 }
 
