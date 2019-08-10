@@ -23,6 +23,9 @@ const std::map<Material::Attribute, std::string> InteractiveScene::AVAILABLE_TEX
     {Material::DISPLACEMENT, "Displacement"}
 };
 
+//Types of lights labels
+const char *InteractiveScene::LIGHT_TYPE_LABEL[] = {"Directional", "Point", "Spotlight"};
+
 
 // Private static attributes
 
@@ -55,7 +58,7 @@ void InteractiveScene::mouseButtonCallback(GLFWwindow *window, int, int action, 
 
 // GLFW cursor callback
 void InteractiveScene::cursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
-    // Get the interactive scene 
+    // Get the interactive scene
     InteractiveScene *const scene = static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window));
     scene->cursor_position.x = static_cast<float>(xpos);
     scene->cursor_position.y = static_cast<float>(ypos);
@@ -64,9 +67,18 @@ void InteractiveScene::cursorPosCallback(GLFWwindow *window, double xpos, double
     ImGuiIO &io = ImGui::GetIO();
     const bool capture_io = io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 
-    // Rotate the active camera if  the GUI don't want to capture IO and the main GUI window is not visible
-    if (!capture_io || !scene->show_main_gui) {
+    // If the cursor is disabled and the GUI don't want to capture IO or the main GUI window is not visible
+    if ((io.ConfigFlags & ImGuiConfigFlags_NoMouse) && (!capture_io || !scene->show_main_gui)) {
+        // Rotate the active camera
         scene->active_camera->rotate(scene->mouse->translate(xpos, ypos));
+
+        // Update the grabbed lights direction
+        const glm::vec3 direction = scene->active_camera->getDirection();
+        for (std::pair<const std::size_t, Light *> &light_data : scene->light_stock) {
+            if (light_data.second->isGrabbed()) {
+                light_data.second->setDirection(direction);
+            }
+        }
     }
 }
 
@@ -86,8 +98,8 @@ void InteractiveScene::scrollCallback(GLFWwindow *window, double, double yoffset
 void InteractiveScene::keyCallback(GLFWwindow *window, int key, int, int action, int modifier) {
     // Get the pressed status
     bool pressed = action != GLFW_RELEASE;
-    
-    // Get the interactive scene 
+
+    // Get the interactive scene
     InteractiveScene *const scene = static_cast<InteractiveScene *>(glfwGetWindowUserPointer(window));
 
     // Get the ImGuiIO reference and the capture IO status
@@ -203,7 +215,7 @@ void InteractiveScene::showMainGUIWindow() {
     // Setup style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
     ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(470.0F, static_cast<float>(height)), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(501.0F, static_cast<float>(height)), ImGuiCond_Always);
 
     // Create the main GUI window
     const bool open = ImGui::Begin("Settings", &show_main_gui, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
@@ -277,12 +289,8 @@ void InteractiveScene::showMainGUIWindow() {
             ImGui::SameLine(210.0F);
             ImGui::Text("Frames:  %.3fE3", kframes);
             ImGui::Text("Mouse: %.0f, %.0f", cursor_position.x, cursor_position.y);
-            ImGui::HelpMarker("(x, y)");
-            ImGui::Spacing();
-            // Background color
-            if (ImGui::ColorEdit3("Background", &clear_color.r)) {
-                glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0F);
-            }
+            ImGui::HelpMarker("[x, y]");
+            ImGui::ColorEdit3("Background", &background_color.r);
             ImGui::TreePop();
         }
 
@@ -349,11 +357,17 @@ void InteractiveScene::showMainGUIWindow() {
             if (ImGui::DragFloat("Sensibility", &value, 0.25F, 0.0F, 0.0F, "%.4f")) {
                 Camera::setSensibility(value);
             }
+            // Speed
+            value = Camera::getSpeed();
+            if (ImGui::DragFloat("Speed", &value, 0.005F, 0.0F, FLT_MAX, "%.4f")) {
+                Camera::setSpeed(value);
+            }
             // Boost speed
             value = Camera::getBoostedSpeed();
-            if (ImGui::DragFloat("Boost speed", &value, 0.05F, 0.0F, 0.0F, "%.4f")) {
+            if (ImGui::DragFloat("Boost speed", &value, 0.05F, 0.0F, FLT_MAX, "%.4f")) {
                 Camera::setBoostedSpeed(value);
             }
+            ImGui::HelpMarker("The boost speed is expected to be\ngreater than the normal speed.");
             ImGui::TreePop();
         }
 
@@ -427,6 +441,39 @@ void InteractiveScene::showMainGUIWindow() {
         ImGui::Spacing();
     }
 
+    // Lights section
+    if (ImGui::CollapsingHeader("Lights")) {
+        // Program to remove ID
+        std::size_t remove = 0U;
+
+        // Draw each light node
+        for (const std::pair<const std::size_t, Light *const> &light_data : light_stock) {
+            // ID and title strings
+            const std::string id = std::to_string(light_data.first);
+            const std::string light_title = "Light " + id;
+
+            // Draw node and catch the selected to remove
+            if (ImGui::TreeNode(id.c_str(), light_title.c_str())) {
+                if (!lightWidget(light_data.second)) {
+                    remove = light_data.first;
+                }
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove light
+        if (remove != 0U) {
+            removeLight(remove);
+        }
+
+        // Add light button
+        ImGui::Spacing();
+        if (ImGui::Button("Add light", ImVec2(454.0F, 19.0F))) {
+            addLight();
+        }
+        ImGui::Spacing();
+    }
+
     // Programs section
     if (ImGui::CollapsingHeader("GLSL Programs")) {
         // Program to remove ID
@@ -468,7 +515,7 @@ void InteractiveScene::showMainGUIWindow() {
                 case 0U:
                     program_title = "Default geometry pass";
                     break;
-                
+
                 // Default lighting pass program
                 case 1U:
                     program_title = "Default lighting pass";
@@ -510,7 +557,7 @@ void InteractiveScene::showMainGUIWindow() {
 bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id) {
     // Keep camera flag
     bool keep = true;
-    
+
     // For non active camera
     if (id != 0U) {
         // Select active button
@@ -535,19 +582,19 @@ bool InteractiveScene::cameraWidget(Camera *const camera, const std::size_t &id)
     }
     ImGui::SameLine(338.0F);
     ImGui::Text("Projection");
-    
+
     // Position
     glm::vec3 value = camera->getPosition();
     if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setPosition(value);
     }
-    
+
     // Direction
     value = camera->getDirection();
     if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
         camera->setDirection(value);
     }
-    
+
     // Clipping planes
     glm::vec2 clipping = camera->getClipping();
     if (ImGui::DragFloat2("Clipping", &clipping.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
@@ -576,7 +623,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
     // Get the model and program ID
     Model *const model = model_data.first;
     const std::size_t program = model_data.second;
-    
+
     // Model path
     std::string str = model->getPath();
     if (ImGui::InputText("Path", &str, ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -957,11 +1004,152 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
     return keep;
 }
 
+// Draw the light widget
+bool InteractiveScene::lightWidget(Light *const light) {
+    // Keep light flag
+    bool keep = true;
+
+    // Type combo
+    Light::Type type = light->getType();
+    if (ImGui::BeginCombo("Type", InteractiveScene::LIGHT_TYPE_LABEL[type])) {
+        for (GLint i = Light::DIRECTIONAL; i <= Light::SPOTLIGHT; i++) {
+            // Selected status
+            const Light::Type new_type = static_cast<Light::Type>(i);
+            bool selected = type == new_type;
+
+            // Show item and select
+            if (ImGui::Selectable(InteractiveScene::LIGHT_TYPE_LABEL[new_type], selected)) {
+                light->setType(new_type);
+            }
+
+            // Set default focus to selected
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    // Enabled checkbox
+    bool status = light->isEnabled();
+    if (ImGui::Checkbox("Enabled", &status)) {
+        light->setEnabled(status);
+    }
+    // Grabed checkbox for spotlight lights
+    if (type == Light::SPOTLIGHT) {
+        status = light->isGrabbed();
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Grabbed", &status)) {
+            light->setGrabbed(status);
+        }
+    }
+    // Remove button if there are more than one light in the stock
+    if (light_stock.size() > 1U) {
+        keep = !ImGui::RemoveButton();
+    }
+
+
+    // Space attributes
+    ImGui::BulletText("Spacial attributes");
+    ImGui::Indent();
+
+    // Light direction for non point light
+    if (type != Light::POINT) {
+        glm::vec3 direction = light->getDirection();
+        if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setDirection(direction);
+        }
+    }
+
+    // Non directional lights
+    if (type != Light::DIRECTIONAL) {
+        // Position
+        glm::vec3 vector = light->getPosition();
+        if (ImGui::DragFloat3("Position", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setPosition(vector);
+        }
+
+        // Attenuation
+        vector = light->getAttenuation();
+        if (ImGui::DragFloat3("Attenuation", &vector.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            light->setAttenuation(vector);
+        }
+        ImGui::HelpMarker("[Constant, Linear, Quadratic]\nIf any value is negative rare\neffects may appear.");
+
+        // Cutoff for spotlight lights
+        if (type == Light::SPOTLIGHT) {
+            glm::vec2 cutoff = light->getCutoff();
+            if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, 0.0F, "%.4f")) {
+                light->setCutoff(cutoff);
+            }
+            ImGui::HelpMarker("[Inner, Outter]\nIf the inner cutoff is greater than the\noutter cutoff rare effects may appear.");
+        }
+    }
+    ImGui::Unindent();
+
+
+    // Color attributes
+    ImGui::BulletText("Color attributes");
+    ImGui::Indent();
+
+    // Ambient color
+    glm::vec3 color = light->getAmbientColor();
+    if (ImGui::ColorEdit3("Ambient", &color.r)) {
+        light->setAmbientColor(color);
+    }
+
+    // Diffuse color
+    color = light->getDiffuseColor();
+    if (ImGui::ColorEdit3("Diffuse", &color.r)) {
+        light->setDiffuseColor(color);
+    }
+
+    // Specular color
+    color = light->getSpecularColor();
+    if (ImGui::ColorEdit3("Specular", &color.r)) {
+        light->setSpecularColor(color);
+    }
+    ImGui::Unindent();
+
+
+    // Colors levels
+    ImGui::BulletText("Color values");
+    ImGui::Indent();
+
+    // Ambient level
+    float value = light->getAmbientLevel();
+    if (ImGui::DragFloat("Ambient level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
+        light->setAmbientLevel(value);
+    }
+
+    // Diffuse level
+    value = light->getDiffuseLevel();
+    if (ImGui::DragFloat("Diffuse level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
+        light->setDiffuseLevel(value);
+    }
+
+    // Specular level
+    value = light->getSpecularLevel();
+    if (ImGui::DragFloat("Specular level", &value, 0.0025F, 0.0F, 1.0F, "%.4f")) {
+        light->setSpecularLevel(value);
+    }
+
+    // Shininess
+    value = light->getShininess();
+    if (ImGui::DragFloat("Shininess", &value, 0.0025F, 0.0F, 0.0F, "%.4f")) {
+        light->setShininess(value);
+    }
+    ImGui::HelpMarker("If the shininess value negative\nrare effects may appear.");
+    ImGui::Unindent();
+
+    // Return the keep light value
+    return keep;
+}
+
 // Draw the program widget
 bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &program_data) {
     // Keep program flag
     bool keep = true;
-
 
     // Get the program and shader paths
     GLSLProgram *const program = program_data.first;
@@ -1019,7 +1207,7 @@ bool InteractiveScene::programWidget(std::pair<GLSLProgram *, std::string> &prog
     // Separator for open nodes
     ImGui::Separator();
 
-    // Return the keep model value
+    // Return the keep program value
     return keep;
 }
 
@@ -1033,7 +1221,7 @@ bool InteractiveScene::programComboItem(const std::size_t &current, const std::s
     if ((program != 0U) && (program != 1U)) {
         program_title.append(" (").append(std::to_string(program)).append(")");
     }
-    
+
     // Show item and get the selection status
     const bool selection = ImGui::Selectable(program_title.c_str(), selected);
 
@@ -1063,6 +1251,13 @@ void InteractiveScene::processKeyboardInput() {
     if (glfwGetKey(window, GLFW_KEY_SPACE) || glfwGetKey(window, GLFW_KEY_UP))    active_camera->travell(Camera::UP);
     if (glfwGetKey(window, GLFW_KEY_C)     || glfwGetKey(window, GLFW_KEY_DOWN))  active_camera->travell(Camera::DOWN);
 
+    // Update the grabbed lights positions
+    const glm::vec3 position = active_camera->getPosition();
+    for (std::pair<const std::size_t, Light *> &light_data : light_stock) {
+        if (light_data.second->isGrabbed()) {
+            light_data.second->setPosition(position);
+        }
+    }
 }
 
 

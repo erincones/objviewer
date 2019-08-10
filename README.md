@@ -17,13 +17,13 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
   - [x] Orthogonal and perspective projection
   - [x] Variable speed
 - [ ] Lighting techniques
-  - [ ] Blinn-Phong
+  - [x] Blinn-Phong
   - [ ] Oren-Nayar
   - [ ] Cook-Torrance
-- [ ] Type of lights
-  - [ ] Directional
-  - [ ] Point
-  - [ ] Spotlight
+- [x] Type of lights
+  - [x] Directional
+  - [x] Point
+  - [x] Spotlight
 - [ ] Shading techniques
   - [ ] Normal mapping
   - [ ] Occlusion parallax mapping

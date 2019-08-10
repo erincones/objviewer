@@ -37,7 +37,7 @@ void Model::load() {
     // Set the stocks
     material_stock = model_data->material_stock;
     object_stock = model_data->object_stock;
-    
+
     // Statistics
     vertices  = model_data->vertices;
     elements  = model_data->elements;
@@ -77,7 +77,7 @@ void Model::clear() {
     vao = GL_FALSE;
     vbo = GL_FALSE;
     ebo = GL_FALSE;
-    
+
     // Statistics
     vertices  = 0U;
     elements  = 0U;
@@ -118,17 +118,17 @@ Model::Model() :
 
     // Enabled
     enabled(true),
-    
+
     // Geometry
     position(0.0F),
     rotation(glm::quat()),
     dimension(1.0F),
-    
+
     // Matrices
     model_mat(1.0F),
     model_origin_mat(1.0F),
     normal_mat(1.0F),
-    
+
     // Default material
     default_material(nullptr) {}
 
@@ -138,17 +138,17 @@ Model::Model(const std::string &path) :
 
     // Enabled
     enabled(true),
-    
+
     // Geometry
     position(0.0F),
     rotation(glm::quat()),
     dimension(1.0F),
-    
+
     // Matrices
     model_mat(1.0F),
     model_origin_mat(1.0F),
     normal_mat(1.0F),
-    
+
     // Default material
     default_material(nullptr)  {
     // Load the model

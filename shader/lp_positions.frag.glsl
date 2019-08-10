@@ -7,6 +7,7 @@ out vec4 color;
 // Uniform variables
 uniform vec3 u_background_color;
 
+uniform sampler2D u_position_tex;
 uniform sampler2D u_normal_tex;
 
 
@@ -25,6 +26,7 @@ void main() {
         return;
     }
 
-    // Set the normal as color
-    color = vec4(normal, 1.0F);
+    // Set the position as color
+    vec3 position = texture(u_position_tex, uv_coord).rgb;
+    color = vec4(position, 1.0F);
 }

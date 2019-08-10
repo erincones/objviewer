@@ -63,7 +63,7 @@ class Mouse {
         /** Get rotation point */
         glm::vec3 getRotationPoint() const;
 
-        
+
         // Setters
 
         /** Set the pressed status */

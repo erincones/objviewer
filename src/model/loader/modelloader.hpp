@@ -119,7 +119,6 @@ class ModelLoader {
 
         /** Right std::string trim */
         static void rtrim(std::string &str);
-
 };
 
 #endif // __MODEL_LOADER_HPP_
