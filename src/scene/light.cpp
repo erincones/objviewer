@@ -15,7 +15,7 @@ Light::Light(const Light::Type &type) :
     type(type),
 
     // Default spacial attributes
-    direction(0.0F, 0.0F, -1.0F),
+    direction(0.0F, 0.0F, 1.0F),
     position(0.0F, 0.0F, 2.0F),
 
     // Non directional default attributes
@@ -55,7 +55,7 @@ Light::Type Light::getType() const {
 
 // Get the direction
 glm::vec3 Light::getDirection() const {
-    return direction;
+    return -direction;
 }
 
 // Get the position
@@ -132,7 +132,7 @@ void Light::setType(const Light::Type &new_type) {
 
 // Set the direction
 void Light::setDirection(const glm::vec3 &new_direction) {
-    direction = glm::normalize(new_direction);
+    direction = -glm::normalize(new_direction);
 }
 
 // Set the position
