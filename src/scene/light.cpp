@@ -209,22 +209,18 @@ void Light::bind(GLSLProgram *const program) const {
         program->setUniform("u_light_attenuation", attenuation);
         program->setUniform("u_light_cutoff",      cutoff);
 
-        program->setUniform("u_light_ambient",  ambient_color);
-        program->setUniform("u_light_diffuse",  diffuse_color);
-        program->setUniform("u_light_specular", specular_color);
-
-        program->setUniform("u_ambient_level",   ambient_level);
-        program->setUniform("u_diffuse_level",   diffuse_level);
-        program->setUniform("u_specular_level",  specular_level);
-        program->setUniform("u_light_shininess", shininess);
+        program->setUniform("u_ambient",   ambient_level  * ambient_color);
+        program->setUniform("u_diffuse",   diffuse_level  * diffuse_color);
+        program->setUniform("u_specular",  specular_level * specular_color);
+        program->setUniform("u_shininess", shininess);
     }
 
     // Levels to zero for non enabled light
     else {
         program->setUniform("u_light_type", Light::DIRECTIONAL);
 
-        program->setUniform("u_ambient_level",  0.0F);
-        program->setUniform("u_diffuse_level",  0.0F);
-        program->setUniform("u_specular_level", 0.0F);
+        program->setUniform("u_ambient",  glm::vec3(0.0F));
+        program->setUniform("u_diffuse",  glm::vec3(0.0F));
+        program->setUniform("u_specular", glm::vec3(0.0F));
     }
 }

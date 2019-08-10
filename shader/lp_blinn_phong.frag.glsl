@@ -18,16 +18,14 @@ uniform vec3 u_light_position;
 uniform vec3 u_light_attenuation;
 uniform vec2 u_light_cutoff;
 
-uniform vec3 u_light_ambient;
-uniform vec3 u_light_diffuse;
-uniform vec3 u_light_specular;
-
-uniform float u_ambient_level;
-uniform float u_diffuse_level;
-uniform float u_specular_level;
-uniform float u_light_shininess;
+uniform vec3 u_ambient;
+uniform vec3 u_diffuse;
+uniform vec3 u_specular;
+uniform float u_shininess;
 
 uniform vec3 u_view_pos;
+
+uniform vec3 u_background_color;
 
 uniform sampler2D u_position_tex;
 uniform sampler2D u_normal_tex;
@@ -48,26 +46,40 @@ void main() {
 
     // Discard if the normal is black and transparent pixels
     if ((diffuse_alpha.a == 0.0F) || (normal == vec3(0.0F))) {
-        discard;
+        color = vec4(u_background_color, 1.0F);
+        return;
     }
 
     // Get the position, ambient and specular data from the buffer textures
-    vec3 position           = texture(u_position_tex, uv_coord).rgb;
+    vec4 position_shininess = texture(u_position_tex, uv_coord);
     vec3 ambient            = texture(u_ambient_tex, uv_coord).rgb;
-    vec4 specular_shininess = texture(u_specular_tex, uv_coord);
+    vec3 specular           = texture(u_specular_tex, uv_coord).rgb;
 
     // Decompose diffuse and specular data
-    vec3 diffuse = diffuse_alpha.rgb;
-    vec3 specular   = specular_shininess.rgb;
-    float shininess = specular_shininess.a;
+    vec3 position   = position_shininess.rgb;
+    vec3 diffuse    = diffuse_alpha.rgb;
+    float shininess = position_shininess.a * u_shininess;
 
 
-    // View direction and initial attenuation and intensity
+    // Lambert factor
     vec3 view_dir = normalize(u_view_pos - position);
+    float nl = max(dot(normal, u_light_direction), 0.0F);
+
+    // Specular Blinn-Phong
+    vec3 halfway = normalize(u_light_direction + view_dir);
+    float nh = max(dot(normal, halfway), 0.0F);
+    float blinn_phong = pow(nh, shininess);
+
+
+    // Calcule color components
+    ambient  *= u_ambient;
+    diffuse  *= u_diffuse  * nl;
+    specular *= u_specular * blinn_phong;
+
+
+    // Attenunation and intensity for non directional light
     float attenuation = 1.0F;
     float intensity = 1.0F;
-
-    // Attenunation for non directional light
     if (u_light_type != DIRECTIONAL) {
         vec3 light_dir = u_light_position - position;
         float dist = length(light_dir);
@@ -81,22 +93,9 @@ void main() {
         }
     }
 
-    // Halfway vector and dot products
-    vec3 halfway = normalize(u_light_direction + view_dir);
-    float nl = dot(u_light_direction, normal);
-    float nh = dot(normal, halfway);
-
-    // Specular Blinn-Phong
-    float blinn_phong = pow(max(nh, 0.0F), u_light_shininess * shininess);
-
-    // Calcule components colors
-    ambient  *= u_ambient_level * u_light_ambient;
-    diffuse  *= max(nl, 0.0F) * u_light_diffuse;
-    specular *= u_specular_level * blinn_phong * u_light_specular;
 
     // Final light
     vec3 lighting = attenuation * (ambient + intensity * (diffuse + specular));
-
 
     // Set the color
     color = vec4(lighting, 1.0F);
