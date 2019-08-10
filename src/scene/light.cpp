@@ -204,10 +204,19 @@ void Light::bind(GLSLProgram *const program) const {
     if (enabled) {
         program->setUniform("u_light_type", type);
 
-        program->setUniform("u_light_direction",   direction);
-        program->setUniform("u_light_position",    position);
-        program->setUniform("u_light_attenuation", attenuation);
-        program->setUniform("u_light_cutoff",      cutoff);
+        // Directional light
+        if (type == Light::DIRECTIONAL) {
+            program->setUniform("u_light_direction", direction);
+        }
+
+        // Non directional light
+        else {
+            program->setUniform("u_light_position",    position);
+            program->setUniform("u_light_attenuation", attenuation);
+            if (type == Light::SPOTLIGHT) {
+                program->setUniform("u_light_cutoff", glm::cos(cutoff));
+            }
+        }
 
         program->setUniform("u_ambient",   ambient_level  * ambient_color);
         program->setUniform("u_diffuse",   diffuse_level  * diffuse_color);
