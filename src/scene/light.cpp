@@ -20,7 +20,7 @@ Light::Light(const Light::Type &type) :
 
     // Non directional default attributes
     attenuation(1.0F, 0.14F, 0.007F),
-    cutoff(glm::radians(20.0F), glm::radians(25.0F)),
+    cutoff(glm::radians(5.0F), glm::radians(7.5F)),
 
     // Default colors
     ambient_color(1.0F),
