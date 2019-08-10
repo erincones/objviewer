@@ -65,8 +65,8 @@ void Scene::createGeometryFrameBuffer() {
     // Generate the texture buffers and attach each one
     glGenTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
 
-    // Position texture buffer
-    Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
+    // Position and shininess texture buffer
+    Scene::attachTextureToFrameBuffer(0, GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
     // Normal and displacement texture buffer
     Scene::attachTextureToFrameBuffer(1, GL_RGBA16F, GL_RGBA, GL_FLOAT);
@@ -77,8 +77,8 @@ void Scene::createGeometryFrameBuffer() {
     // Diffuse and alpha texture buffer
     Scene::attachTextureToFrameBuffer(3, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 
-    // Specular and shininess texture buffer
-    Scene::attachTextureToFrameBuffer(4, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+    // Specular texture buffer
+    Scene::attachTextureToFrameBuffer(4, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 
 
     // Color attachments to use
@@ -234,9 +234,10 @@ void Scene::drawScene() {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
     program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
 
-    // Set the brackground color
+    // Set the brackground color and view position
     program->use();
     program->setUniform("u_background_color", background_color);
+    program->setUniform("u_view_pos", active_camera->getPosition());
 
     // Set buffer texture uniforms
     program->setUniform("u_position_tex", 0);
