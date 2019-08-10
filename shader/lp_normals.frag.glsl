@@ -18,9 +18,9 @@ void main() {
     vec4 normal_disp = texture(u_normal_tex, uv_coord);
 
     // Discard if the normal is black
-    //if ((normal_disp.x == 0.0F) && (normal_disp.y == 0.0F) && (normal_disp.z == 0.0F)) {
-    //    discard;
-    //}
+    if ((normal_disp.x == 0.0F) && (normal_disp.y == 0.0F) && (normal_disp.z == 0.0F)) {
+        discard;
+    }
 
     // Set the color
     color = vec4(normal_disp.rgb, 1.0F);
