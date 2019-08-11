@@ -57,9 +57,11 @@ void main() {
     vec3 specular = texture(u_specular_tex, uv_coord).rgb;
     vec4 metadata = texture(u_metadata_tex, uv_coord);
 
-    // Decompose diffuse and shininess data
+    // Decompose diffuse, shininess, roughness and metalness data
     vec3 diffuse    = diffuse_alpha.rgb;
     float shininess = metadata.x * u_shininess;
+    float roughness = metadata.y;
+    float metalness = metadata.z;
 
 
     // Light direction, attenuation and intensity
@@ -100,23 +102,42 @@ void main() {
 
     // Lambert factor
     vec3 view_dir = normalize(u_view_pos - position);
-    float nl = max(dot(normal, light_dir), 0.0F);
+    float nl = dot(normal, light_dir);
 
-    // Specular Blinn-Phong
+    // Fresnel
     vec3 halfway = normalize(light_dir + view_dir);
-    float nh = max(dot(normal, halfway), 0.0F);
-    float blinn_phong = pow(nh, shininess);
+    float hv = dot(halfway, view_dir);
+    float hv_comp = 1.0F - hv;
+    vec3 f0 = mix(ambient, specular, metalness);
+    vec3 fresnel = f0 + (1.0F - f0) * hv_comp * hv_comp * hv_comp * hv_comp * hv_comp;
+
+    // Roughness
+    float nh = dot(normal, halfway);
+    if (roughness > 0.0F) {
+        float nh_sqr = nh * nh;
+        roughness *= nh_sqr;
+        roughness  = exp((nh_sqr - 1.0F) / roughness) / (roughness * nh_sqr);
+    }
+
+    // Geometry attenuation
+    float nv = dot(normal, view_dir);
+    float aux = 2.0F * nh / hv;
+    float geometry = min(min(aux * nv, aux * nl), 1.0F);
+
+    // Cook-Torrance
+    float nvnl = nv * nl;
+    vec3 cook_torrance = (nvnl != 0.0F ? (fresnel * roughness * geometry) / nvnl : vec3(0.0F));
 
 
     // Calcule color components
     ambient  *= u_ambient;
-    diffuse  *= u_diffuse  * nl;
-    specular *= u_specular * blinn_phong;
+    diffuse  *= u_diffuse;
+    specular *= u_specular * cook_torrance;
 
 
     // Final light
-    vec3 lighting = attenuation * (ambient + intensity * (diffuse + specular));
+    vec3 lighting = attenuation * (ambient + intensity * max(nl, 0.0F) * (diffuse + specular));
 
     // Set the color
-    color = vec4(lighting, 1.0F);
+    color = vec4(lighting, diffuse_alpha.a);
 }
