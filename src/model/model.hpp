@@ -187,7 +187,7 @@ class Model : private ModelData {
         void reload();
 
         /** Reload material */
-        void reloadMaterial();
+        bool reloadMaterial();
 
         /** Reset geometry */
         void resetGeometry();

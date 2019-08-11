@@ -107,6 +107,37 @@ ModelData *ModelLoader::load(const std::string &path, const ModelLoader::Format 
     return model_data;
 }
 
+// Read and load the material data
+std::vector<Material *> ModelLoader::loadMaterial(const std::string &path, const ModelLoader::Format &format) {
+    // Create a null model loader
+    ModelLoader *loader = nullptr;
+
+    // Instanciate the loader
+    switch (format) {
+        case OBJ: loader = static_cast<ModelLoader *>(new OBJLoader(path)); break;
+
+        // Return empty model data if the format is unknown
+        default:
+            std::cerr << "error: unknown model loader format `" << format << "'" << std::endl;
+            return std::vector<Material *>();
+    }
+
+    // Read and load the material data
+    loader->readMaterial(path);
+
+    // Get the material data
+    std::vector<Material *> material_stock(loader->model_data->material_stock);
+
+    // Clean up the loader data
+    loader->model_data->material_stock.clear();
+    delete loader->model_data;
+    delete loader;
+
+    // Return the model data
+    return material_stock;
+}
+
+
 // Right std::string trim
 void ModelLoader::rtrim(std::string &str) {
     str.erase(str.find_last_not_of(ModelLoader::space) + 1);

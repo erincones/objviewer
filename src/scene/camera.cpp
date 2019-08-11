@@ -55,8 +55,8 @@ void Camera::updateProjectionMatrices() {
 // Camera constructor
 Camera::Camera(const int &width, const int &height, const bool &orthogonal) :
     orthogonal(orthogonal),
-    width(width),
-    height(height) {
+    width(static_cast<float>(width)),
+    height(static_cast<float>(height)) {
     // Load default values
     reset();
 }
@@ -269,8 +269,9 @@ void Camera::travell(const Camera::Movement &direction, const double &time) {
         case BACK:  position -= glm::normalize(glm::cross(up, right)) * distance; break;
     }
 
-    // Update the view matrix
+    // Update matrices
     updateViewMatrix();
+    updateProjectionMatrices();
 }
 
 // Translate the camera

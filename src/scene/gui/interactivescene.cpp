@@ -715,8 +715,11 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
         ImGui::HelpMarker("Read only");
 
         // Material material
-        if (ImGui::Button("Reload material")) {
-            model->reloadMaterial();
+        if (!str.empty()) {
+            if (ImGui::Button("Reload material")) {
+                model->reloadMaterial();
+            }
+            ImGui::HelpMarker("If the material data has\nchanged, nothing happens");
         }
 
         // Check material status
@@ -801,7 +804,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Parallax value
             material_attribute = Material::DISPLACEMENT;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, 0.0F, "%.4f")) {
+            if (ImGui::DragFloat("Parallax", &value, 0.005F, 0.0F, 0.0F, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -920,28 +923,28 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
                 // Shininess value
                 material_attribute = Material::SHININESS;
                 value = material->getValue(material_attribute);
-                if (ImGui::DragFloat("Shininess", &value)) {
+                if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, 1000.0F, "%.4f")) {
                     material->setValue(material_attribute, value);
                 }
 
                 // Roughness value
                 material_attribute = Material::ROUGHNESS;
                 value = material->getValue(material_attribute);
-                if (ImGui::DragFloat("Roughness", &value)) {
+                if (ImGui::DragFloat("Roughness", &value, 0.005F, 0.0F, 1.0F, "%.4f")) {
                     material->setValue(material_attribute, value);
                 }
 
                 // Metalness value
                 material_attribute = Material::METALNESS;
                 value = material->getValue(material_attribute);
-                if (ImGui::DragFloat("Metalness", &value)) {
+                if (ImGui::DragFloat("Metalness", &value, 0.005F, 0.0F, 1.0F, "%.4f")) {
                     material->setValue(material_attribute, value);
                 }
 
                 // Parallax value
                 material_attribute = Material::DISPLACEMENT;
                 value = material->getValue(material_attribute);
-                if (ImGui::DragFloat("Parallax", &value)) {
+                if (ImGui::DragFloat("Parallax", &value, 0.005F, 0.0F, 0.0F, "%.4f")) {
                     material->setValue(material_attribute, value);
                 }
 
@@ -971,7 +974,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
                             }
 
                             // Draw texture
-                            ImGui::Image(reinterpret_cast<void *>(material->getTexture(texture.first)), ImVec2(300.0F, 300.0F), ImVec2(0.0F, 1.0F), ImVec2(1.0F, 0.0F));
+                            ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(material->getTexture(texture.first))), ImVec2(300.0F, 300.0F), ImVec2(0.0F, 1.0F), ImVec2(1.0F, 0.0F));
 
                             // Separator for open nodes
                             ImGui::Separator();
