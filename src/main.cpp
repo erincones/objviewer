@@ -43,8 +43,12 @@ int main (int argc, char **argv) {
 
     scene->addProgram("Positions", common_lp_vert_path, shader_path + "lp_positions.frag.glsl");
 
-    std::size_t program_0 = scene->addProgram("Blinn-Phong", common_lp_vert_path, shader_path + "lp_blinn_phong.frag.glsl");
-    scene->setLightingPassProgram(program_0);
+    scene->addProgram("Blinn-Phong", common_lp_vert_path, shader_path + "lp_blinn_phong.frag.glsl");
+    scene->addProgram("Oren-Nayar",  common_lp_vert_path, shader_path + "lp_oren_nayar.frag.glsl");
+    std::size_t program = scene->addProgram("Cock-Torrance", common_lp_vert_path, shader_path + "lp_cock_torrance.frag.glsl");
+
+    scene->setLightingPassProgram(program);
+
 
     // Add the models
     std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#define TEXTURE_BUFFERS 5
+#define TEXTURE_BUFFERS 6
 
 
 // Private static attributes
@@ -65,11 +65,11 @@ void Scene::createGeometryFrameBuffer() {
     // Generate the texture buffers and attach each one
     glGenTextures(TEXTURE_BUFFERS, Scene::buffer_texture);
 
-    // Position and shininess texture buffer
-    Scene::attachTextureToFrameBuffer(0, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+    // Position texture buffer
+    Scene::attachTextureToFrameBuffer(0, GL_RGB16F, GL_RGB, GL_FLOAT);
 
-    // Normal and displacement texture buffer
-    Scene::attachTextureToFrameBuffer(1, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+    // Normal texture buffer
+    Scene::attachTextureToFrameBuffer(1, GL_RGB16F, GL_RGB, GL_FLOAT);
 
     // Ambient texture buffer
     Scene::attachTextureToFrameBuffer(2, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
@@ -79,6 +79,9 @@ void Scene::createGeometryFrameBuffer() {
 
     // Specular texture buffer
     Scene::attachTextureToFrameBuffer(4, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+
+    // Displacement texture buffer
+    Scene::attachTextureToFrameBuffer(5, GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
 
     // Color attachments to use
@@ -222,7 +225,8 @@ void Scene::drawScene() {
     // Bind the default frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, GL_FALSE);
 
-    // Enable the blend option
+    // Setup for add the lights contribution
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
@@ -234,9 +238,8 @@ void Scene::drawScene() {
     std::map<std::size_t, std::pair<GLSLProgram *, std::string> >::const_iterator result = program_stock.find(lighting_program);
     program = (result == program_stock.end() ? program_stock[1U] : result->second).first;
 
-    // Set the brackground color and view position
+    // Set the view position
     program->use();
-    program->setUniform("u_background_color", background_color);
     program->setUniform("u_view_pos", active_camera->getPosition());
 
     // Set buffer texture uniforms
@@ -245,6 +248,7 @@ void Scene::drawScene() {
     program->setUniform("u_ambient_tex",  2);
     program->setUniform("u_diffuse_tex",  3);
     program->setUniform("u_specular_tex", 4);
+    program->setUniform("u_metadata_tex", 5);
 
     // Bind buffer textures
     for (GLenum i = 0; i < TEXTURE_BUFFERS; i++) {
@@ -256,7 +260,15 @@ void Scene::drawScene() {
     glBindVertexArray(Scene::square_vao);
 
     // For each light
+    int pass = 0;
     for (const std::pair<const std::size_t, const Light *const> &light_data : light_stock) {
+        // Set the propper background color
+        if (pass < 2) {
+            program->setUniform("u_background_color", pass == 0 ? background_color : glm::vec3(0.0F));
+            pass++;
+        }
+
+        // Bind light and draw square
         light_data.second->bind(program);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
@@ -264,7 +276,8 @@ void Scene::drawScene() {
     // Unbind square vertex array
     glBindVertexArray(GL_FALSE);
 
-    // Disable the blend option
+    // Disable the lights contribution
+    glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
 }
 
