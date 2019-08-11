@@ -771,7 +771,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Shininess value
             material_attribute = Material::SHININESS;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
+            if (ImGui::DragFloat("Shininess", &value, 0.01F, 0.0F, 1000.0F, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -781,7 +781,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Roughness value
             material_attribute = Material::ROUGHNESS;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Roughness", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
+            if (ImGui::DragFloat("Roughness", &value, 0.005F, 0.0F, 1.0F, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -791,7 +791,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Metalness value
             material_attribute = Material::METALNESS;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Metalness", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
+            if (ImGui::DragFloat("Metalness", &value, 0.005F, 0.0F, 1.0F, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
@@ -801,7 +801,7 @@ bool InteractiveScene::modelWidget(std::pair<Model *, std::size_t> &model_data) 
             // Parallax value
             material_attribute = Material::DISPLACEMENT;
             value = material->getValue(material_attribute);
-            if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, FLT_MAX, "%.4f")) {
+            if (ImGui::DragFloat("Parallax", &value, 0.01F, 0.0F, 0.0F, "%.4f")) {
                 material->setValue(material_attribute, value);
                 for (std::size_t i = 0U; i < materials; i++) {
                     model->getMaterial(i)->setValue(material_attribute, value);
