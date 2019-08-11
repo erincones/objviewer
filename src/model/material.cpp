@@ -162,7 +162,7 @@ Material::Material(const std::string &name) :
     color{glm::vec3(0.0F), glm::vec3(1.0F), glm::vec3(0.125F), glm::vec3(1.0F)},
 
     // Values
-    value{96.078431F, 0.3F, 0.1F, 0.0F, 0.05, 1.0F},
+    value{96.078431F, 0.3F, 0.3F, 0.0F, 0.05, 1.0F},
 
     // Textures
     texture{GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE},
@@ -438,16 +438,16 @@ void Material::bind(GLSLProgram *const program) const {
     program->use();
 
     // Set color uniforms
-    program->setUniform("u_ambient",      color[0]);
-    program->setUniform("u_diffuse",      color[1]);
-    program->setUniform("u_specular",     color[2]);
-    program->setUniform("u_transparency", color[3]);
+    program->setUniform("u_ambient",     color[0]);
+    program->setUniform("u_diffuse",     color[1]);
+    program->setUniform("u_specular",    color[2]);
+    program->setUniform("u_transmision", color[3]);
 
     // Set value uniforms
     program->setUniform("u_shininess",        value[0]);
     program->setUniform("u_roughness",        value[1]);
     program->setUniform("u_metalness",        value[2]);
-    program->setUniform("u_transparency",     value[3]);
+    program->setUniform("u_alpha",    (1.0F - value[3]));
     program->setUniform("u_displacement",     value[4]);
     program->setUniform("u_refractive_index", value[5]);
 

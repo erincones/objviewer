@@ -16,10 +16,11 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
   - [x] Mouse and keyboard control
   - [x] Orthogonal and perspective projection
   - [x] Variable speed
-- [ ] Lighting techniques
+- [x] Lighting techniques
   - [x] Blinn-Phong
-  - [ ] Oren-Nayar
-  - [ ] Cook-Torrance
+  - [x] Oren-Nayar
+  - [x] Cook-Torrance
+- [x] Arbitrary number of lights
 - [x] Type of lights
   - [x] Directional
   - [x] Point

@@ -57,9 +57,9 @@ void main() {
     vec3 specular = texture(u_specular_tex, uv_coord).rgb;
     vec4 metadata = texture(u_metadata_tex, uv_coord);
 
-    // Decompose diffuse and shininess data
+    // Decompose diffuse and roughness data
     vec3 diffuse    = diffuse_alpha.rgb;
-    float shininess = metadata.x * u_shininess;
+    float roughness = metadata.y;
 
 
     // Light direction, attenuation and intensity
@@ -100,23 +100,26 @@ void main() {
 
     // Lambert factor
     vec3 view_dir = normalize(u_view_pos - position);
-    float nl = max(dot(normal, light_dir), 0.0F);
+    float nl = dot(normal, light_dir);
 
-    // Specular Blinn-Phong
-    vec3 halfway = normalize(light_dir + view_dir);
-    float nh = max(dot(normal, halfway), 0.0F);
-    float blinn_phong = pow(nh, shininess);
+    // Oren-Nayar
+    float nv = dot(normal, light_dir);
+    float a = 1.0F - 0.50F * roughness / (roughness + 0.57F);
+    float b =        0.45F * roughness / (roughness + 0.09F);
+    float cos_phi = dot(normalize(view_dir - nv * normal), normalize(light_dir - nl * normal));
+    float phi_i   = acos(nl);
+    float phi_r   = acos(nv);
+    float oren_nayar = nl * (a + max(cos_phi, 0.0F) * b * sin(max(phi_i, phi_r)) * tan(min(phi_i, phi_r)));
 
 
     // Calcule color components
-    ambient  *= u_ambient;
-    diffuse  *= u_diffuse  * nl;
-    specular *= u_specular * blinn_phong;
+    ambient *= u_ambient;
+    diffuse *= u_diffuse * max(oren_nayar, 0.0F);
 
 
     // Final light
-    vec3 lighting = attenuation * (ambient + intensity * (diffuse + specular));
+    vec3 lighting = attenuation * (ambient + intensity * diffuse);
 
     // Set the color
-    color = vec4(lighting, 1.0F);
+    color = vec4(lighting, diffuse_alpha.a);
 }
