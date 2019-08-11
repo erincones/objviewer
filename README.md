@@ -26,8 +26,8 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
   - [x] Point
   - [x] Spotlight
 - [ ] Shading techniques
-  - [ ] Normal mapping
-  - [ ] Occlusion parallax mapping
+  - [x] Normal mapping
+  - [x] Occlusion parallax mapping
   - [ ] Shadow mapping
   - [x] Deferred shading
 

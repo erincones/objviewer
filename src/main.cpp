@@ -37,23 +37,27 @@ int main (int argc, char **argv) {
 
 
     // Add the programs
-    const std::string common_lp_vert_path = shader_path + "light_pass_common.vert.glsl";
-    scene->setDefaultGeometryPassProgram("Deferred shading", shader_path + "geom_pass.vert.glsl", shader_path + "geom_pass.frag.glsl");
-    scene->setDefaultLightingPassProgram("Surface normals",  common_lp_vert_path,                 shader_path + "lp_normals.frag.glsl");
+    const std::string common_lp_path = shader_path + "lp_common.vert.glsl";
+    scene->setDefaultGeometryPassProgram("[GP] Basic shading", shader_path + "gp_basic.vert.glsl", shader_path + "gp_basic.frag.glsl");
+    scene->setDefaultLightingPassProgram("[LP] Normals",       common_lp_path,                     shader_path + "lp_normals.frag.glsl");
 
-    scene->addProgram("Positions", common_lp_vert_path, shader_path + "lp_positions.frag.glsl");
+    const std::string gp_normal_vert_path = shader_path + "gp_normal.vert.glsl";
+    std::size_t normal   = scene->addProgram("[GP] Normal mapping", gp_normal_vert_path, shader_path + "gp_normal.frag.glsl");
+    std::size_t parallax = scene->addProgram("[GP] Parallax mapping", gp_normal_vert_path, shader_path + "gp_parallax.frag.glsl");
 
-    scene->addProgram("Blinn-Phong", common_lp_vert_path, shader_path + "lp_blinn_phong.frag.glsl");
-    scene->addProgram("Oren-Nayar",  common_lp_vert_path, shader_path + "lp_oren_nayar.frag.glsl");
-    std::size_t program = scene->addProgram("Cock-Torrance", common_lp_vert_path, shader_path + "lp_cock_torrance.frag.glsl");
+    scene->addProgram("[LP] Positions", common_lp_path, shader_path + "lp_positions.frag.glsl");
 
-    scene->setLightingPassProgram(program);
+    scene->addProgram("[LP] Blinn-Phong", common_lp_path, shader_path + "lp_blinn_phong.frag.glsl");
+    scene->addProgram("[LP] Oren-Nayar",  common_lp_path, shader_path + "lp_oren_nayar.frag.glsl");
+    std::size_t lp_program = scene->addProgram("[LP] Cock-Torrance", common_lp_path, shader_path + "lp_cock_torrance.frag.glsl");
+
+    scene->setLightingPassProgram(lp_program);
 
 
     // Add the models
-    std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
+    std::size_t model_id_0 = scene->addModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj", normal);
     std::size_t model_id_1 = scene->addModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj");
-    std::size_t model_id_2 = scene->addModel(model_path + "box"      + DIR_SEP + "box.obj");
+    std::size_t model_id_2 = scene->addModel(model_path + "box"      + DIR_SEP + "box.obj",      parallax);
 
     // Setup models
     Model *model = scene->getModel(model_id_0);

@@ -31,7 +31,11 @@ GLuint Material::default_texture[3] = {GL_FALSE, GL_FALSE, GL_FALSE};
 // Create a default texture
 GLuint Material::createDefaultTexture(const GLubyte *const color) {
     // Border color
-    float border[4] = {255.0F / color[0], 255.0F / color[1], 255.0F / color[2], 1.0F};
+    float border[4];
+    for (int i = 0; i < 3; i++) {
+        border[i] = (color[i] != 0.0F ? 255.0F / color[i] : 0.0F);
+    }
+    border[3] = 1.0F;
 
     // Generate the new texture
     GLuint texture;
