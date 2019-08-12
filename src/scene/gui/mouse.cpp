@@ -17,8 +17,8 @@ Mouse::Mouse(const int &width, const int &height) :
     pressed(false),
 
     // Window resolution
-    width(width),
-    height(height),
+    width(static_cast<float>(width)),
+    height(static_cast<float>(height)),
 
     // Points
     translation(0.0F),

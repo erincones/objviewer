@@ -335,8 +335,57 @@ void Model::reload() {
 }
 
 // Reload material
-void Model::reloadMaterial() {
+bool Model::reloadMaterial() {
+    // Check the material path
+    if (material_path.empty()) {
+        std::cerr << "error: cannot reload the material if the path is empty" << std::endl;
+        return false;
+    }
 
+    // New default material
+    if (default_material != nullptr) {
+        delete default_material;
+    }
+    default_material = new Material("Default");
+
+    // Load the material data
+    std::vector<Material *> material_data(ModelLoader::loadMaterial(material_path, ModelLoader::OBJ));
+
+    // Check the number of materials
+    const std::size_t materials = material_stock.size();
+    if (material_data.size() != materials) {
+        std::cerr << "error: the materials have changed, use the reload method to see the changues" << std::endl;
+
+        // Clear the material data and return the failed status
+        for (const Material *const material : material_data) {
+            delete material;
+        }
+
+        return false;
+    }
+
+    // Update the object and material stock
+    for (ModelData::Object *const object : object_stock) {
+        // Get the old material
+        const Material *const &old_material = object->material;
+
+        // Replace material
+        for (std::size_t i = 0U; i < materials; i++) {
+            Material *&material = material_stock[i];
+            if (material == old_material) {
+                // Delete the old material
+                delete old_material;
+
+                // Set the new material
+                material = material_data[i];
+                object->material = material;
+                break;
+            }
+        }
+    }
+
+    // Return success
+    return true;
 }
 
 // Reset geometry
@@ -374,7 +423,7 @@ void Model::draw(GLSLProgram *const program) const {
         object->material->bind(program);
 
         // Draw triangles
-        glDrawElements(GL_TRIANGLES, object->count, GL_UNSIGNED_INT, reinterpret_cast<void *>(object->offset));
+        glDrawElements(GL_TRIANGLES, object->count, GL_UNSIGNED_INT, reinterpret_cast<void *>(static_cast<intptr_t>(object->offset)));
     }
 
     // Unbind the vertex array object

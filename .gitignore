@@ -1,8 +1,11 @@
-# Exclude vscode settings files
+# Visual Studio Code folder without the settings files
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/c_cpp_properties.json
+
+# Visual Studio folder
+.vs/
 
 # Binary files
 bin*/
