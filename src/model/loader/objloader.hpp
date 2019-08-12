@@ -33,7 +33,7 @@ class OBJLoader : public ModelLoader {
         bool read();
 
         /** Read material data from file */
-        bool readMTL(const std::string &mtl);
+        bool readMaterial(const std::string &mtl);
 
 
     public:

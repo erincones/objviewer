@@ -88,6 +88,9 @@ class ModelLoader {
         /** Read data from file */
         virtual bool read() = 0;
 
+        /** Read material data from file */
+        virtual bool readMaterial(const std::string &path) = 0;
+
         /** Load data to GPU */
         void load();
 
@@ -116,6 +119,10 @@ class ModelLoader {
 
         /** Read and load data */
         static ModelData *load(const std::string &path, const ModelLoader::Format &format);
+
+        /** Read and load the material data */
+        static std::vector<Material *> loadMaterial(const std::string &path, const ModelLoader::Format &format);
+
 
         /** Right std::string trim */
         static void rtrim(std::string &str);

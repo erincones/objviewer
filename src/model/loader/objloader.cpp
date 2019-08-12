@@ -126,7 +126,7 @@ bool OBJLoader::read() {
             std::getline(stream, token);
 
             // Read mtl file
-            readMTL(token);
+            readMaterial(model_data->model_path.substr(0U, model_data->model_path.find_last_of(DIR_SEP) + 1U) + token);
         }
 
         // Use material for the next vertices
@@ -246,10 +246,10 @@ bool OBJLoader::read() {
 }
 
 // Read material data from file
-bool OBJLoader::readMTL(const std::string &mtl) {
+bool OBJLoader::readMaterial(const std::string &mtl) {
     // Get the relative directory and set the material file path
-    std::string relative = model_data->model_path.substr(0U, model_data->model_path.find_last_of(DIR_SEP) + 1U);
-    model_data->material_path = relative + mtl;
+    model_data->material_path = mtl;
+    const std::string relative = model_data->material_path.substr(0U, model_data->material_path.find_last_of(DIR_SEP) + 1U);
 
     // Open the material file and check it
     std::ifstream file(model_data->material_path);
