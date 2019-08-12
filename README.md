@@ -1,8 +1,6 @@
 # OBJViewer
 
-Another OBJ/MTL 3D models viewer for GCC.
-
-An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
+Another OBJ/MTL 3D models viewer.
 
 
 ## Features

@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Archivos de origen">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Archivos de encabezado">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Archivos de recursos">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Archivos de encabezado\glad">
+      <UniqueIdentifier>{c75111ec-b12e-4980-a137-33109987b979}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\model">
+      <UniqueIdentifier>{3debc5e8-6c07-48d8-97b4-4aa023a42764}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\model\loader">
+      <UniqueIdentifier>{65fe9f36-ad79-4644-ba08-b7b8eb28639a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\model\stb">
+      <UniqueIdentifier>{ec89b279-8c44-4298-b8c3-ad62b5ad6c00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\scene">
+      <UniqueIdentifier>{9c3f2584-dece-4dcb-8fdc-f9f576a45c7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\scene\gui">
+      <UniqueIdentifier>{c483b441-e5db-45d4-99c0-b88e684e5ac8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\scene\gui\imgui">
+      <UniqueIdentifier>{2617a7db-d93c-40d1-bb41-87afad8ee309}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\glad">
+      <UniqueIdentifier>{8f637d1e-23a7-42d3-a1e5-bd3fb18cf868}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\model">
+      <UniqueIdentifier>{6d3f8589-3682-4343-a785-905f8635f746}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\model\loader">
+      <UniqueIdentifier>{c542c4eb-c504-405c-a1d2-3d9a8ab61c8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\scene">
+      <UniqueIdentifier>{83853535-59e6-49ac-8af7-ebac66b1b2d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\scene\gui">
+      <UniqueIdentifier>{4df6bcbe-520b-4fe1-a87d-2a6caadb06c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\scene\gui\imgui">
+      <UniqueIdentifier>{b46520b0-6ae2-47b7-9b4d-e7464ec22b48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de recursos\shader">
+      <UniqueIdentifier>{d72257d5-ef98-4447-b2c0-0041e6ddd20d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\dirsep.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glad\glad.h">
+      <Filter>Archivos de encabezado\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glad\khrplatform.h">
+      <Filter>Archivos de encabezado\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\material.hpp">
+      <Filter>Archivos de encabezado\model</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\model.hpp">
+      <Filter>Archivos de encabezado\model</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\stb\stb_image.h">
+      <Filter>Archivos de encabezado\model\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\loader\modeldata.hpp">
+      <Filter>Archivos de encabezado\model\loader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\loader\modelloader.hpp">
+      <Filter>Archivos de encabezado\model\loader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\loader\objloader.hpp">
+      <Filter>Archivos de encabezado\model\loader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\camera.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\glslprogram.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\light.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scene.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\customwidgets.hpp">
+      <Filter>Archivos de encabezado\scene\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\interactivescene.hpp">
+      <Filter>Archivos de encabezado\scene\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\mouse.hpp">
+      <Filter>Archivos de encabezado\scene\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imconfig.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imgui.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imgui_impl_glfw.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imgui_impl_opengl3.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imgui_internal.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imstb_rectpack.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imstb_textedit.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\gui\imgui\imstb_truetype.h">
+      <Filter>Archivos de encabezado\scene\gui\imgui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glad\glad.c">
+      <Filter>Archivos de origen\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\material.cpp">
+      <Filter>Archivos de origen\model</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\model.cpp">
+      <Filter>Archivos de origen\model</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\loader\modeldata.cpp">
+      <Filter>Archivos de origen\model\loader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\loader\modelloader.cpp">
+      <Filter>Archivos de origen\model\loader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\loader\objloader.cpp">
+      <Filter>Archivos de origen\model\loader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\camera.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\glslprogram.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\light.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scene.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\customwidgets.cpp">
+      <Filter>Archivos de origen\scene\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\interactivescene.cpp">
+      <Filter>Archivos de origen\scene\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\mouse.cpp">
+      <Filter>Archivos de origen\scene\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\imgui\imgui.cpp">
+      <Filter>Archivos de origen\scene\gui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\imgui\imgui_demo.cpp">
+      <Filter>Archivos de origen\scene\gui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\imgui\imgui_draw.cpp">
+      <Filter>Archivos de origen\scene\gui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\imgui\imgui_impl_glfw.cpp">
+      <Filter>Archivos de origen\scene\gui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Archivos de origen\scene\gui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\gui\imgui\imgui_widgets.cpp">
+      <Filter>Archivos de origen\scene\gui\imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\gp_basic.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\gp_basic.vert.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\gp_normal.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\gp_normal.vert.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\gp_parallax.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\lp_blinn_phong.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\lp_cock_torrance.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\lp_common.vert.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\lp_normals.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\lp_oren_nayar.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+    <None Include="shader\lp_positions.frag.glsl">
+      <Filter>Archivos de recursos\shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>
