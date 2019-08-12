@@ -1,8 +1,8 @@
 # OBJViewer
 
-Another OBJ/MTL 3D models viewer for GCC.
+Another OBJ/MTL 3D models viewer.
 
-An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
+Checkout the [msvc] branch for the Visual Studio 2019 project.
 
 
 ## Features
@@ -44,6 +44,8 @@ An example for MSVC is available in <https://github.com/Rebaya17/objviewer>
 
 
 [//]: # "Links references"
+
+[msvc]: https://github.com/Rebaya17/objviewer/tree/msvc/
 
 [GLFW]: https://www.glfw.org/
 [Glad]: https://github.com/Dav1dde/glad

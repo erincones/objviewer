@@ -30,7 +30,7 @@ const char *InteractiveScene::LIGHT_TYPE_LABEL[] = {"Directional", "Point", "Spo
 // Private static attributes
 
 // Repository URL
-char InteractiveScene::repository_url[] = "https://github.com/Rebaya17/objviewer-gcc/";
+char InteractiveScene::repository_url[] = "https://github.com/Rebaya17/objviewer/";
 
 
 // Private statics methods
